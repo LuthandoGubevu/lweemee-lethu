@@ -34,53 +34,50 @@ service cloud.firestore {
 
     // Rules for the 'users' collection.
     match /users/{userId} {
-      // Users can read/write their own profile.
       allow read, write: if request.auth.uid == userId;
 
-      // Users can list their own workspaces subcollection.
       match /workspaces/{workspaceId} {
-        allow read, write: if request.auth.uid == userId;
+        allow list, read, write: if request.auth.uid == userId;
       }
     }
 
     // Rules for the 'workspaces' collection and its subcollections.
     match /workspaces/{workspaceId} {
-      // Allow read if the user is a member of the workspace.
       allow read: if isWorkspaceMember(workspaceId);
-      // Allow create by any signed-in user. The creator is typically added as the first admin member.
       allow create: if isSignedIn();
-      // Allow update only by admins.
-      allow update: if isAdmin(workspaceId);
-      // Allow delete only by admins.
-      allow delete: if isAdmin(workspaceId);
+      allow update, delete: if isAdmin(workspaceId);
       
       // Rules for 'members' subcollection.
       match /members/{memberId} {
-         // Any member of the workspace can see the list of other members.
+         // Allow any member to see the list of other members.
          allow read: if isWorkspaceMember(workspaceId);
-         // Consultants and Admins can add/remove/update members.
+         // Admins/Consultants can write. Users can create their own member doc (on invite/join).
          allow write: if isConsultant(workspaceId) || (request.auth.uid == memberId && request.method == 'create');
       }
 
-      // Rules for 'connections', 'posts', 'recommendations', 'reports' and 'imports' subcollections.
+      // Rules for data subcollections.
       match /{collection}/{docId}
       where collection in ['connections', 'posts', 'recommendations', 'reports', 'imports'] {
-         // Viewers can see everything.
          allow read: if isViewer(workspaceId);
-         // Consultants and Admins can create/update/delete.
          allow write: if isConsultant(workspaceId);
       }
 
-      // Rules for metrics and audience snapshots. These are written by a backend process, not the client.
+      // Rules for metrics and audience snapshots, written by backend processes.
       match /{collection}/{docId}
       where collection in ['postMetrics', 'dailyMetrics', 'monthlyMetrics', 'audienceSnapshots'] {
         allow read: if isViewer(workspaceId);
         allow write: if false; 
       }
       
+      // Rules for nested metrics collections.
+      match /connections/{connectionId}/{collection}/{docId}
+      where collection in ['dailyMetrics', 'monthlyMetrics', 'audienceSnapshots'] {
+        allow read: if isViewer(workspaceId);
+        allow write: if false; 
+      }
+      
       // Rules for the 'billing' singleton document.
       match /billing/config {
-        // Only admins can read and write billing info.
         allow read, write: if isAdmin(workspaceId);
       }
     }
