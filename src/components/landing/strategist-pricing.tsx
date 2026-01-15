@@ -1,15 +1,60 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
+import { Badge } from '../ui/badge';
 
-const includedFeatures = [
-    'We track and review your social media performance using our insights tools',
-    'Monthly performance and audience review',
-    'Clear, plain-language guidance on what’s working and what’s not',
-    'Strategic content and messaging direction',
-    'Priority, actionable recommendations (not dashboards or data dumps)',
-    'One monthly strategy call or voice-note summary',
-    'WhatsApp or email support for quick questions',
+const tiers = [
+  {
+    name: 'Insights Access',
+    price: 'R3,500',
+    period: 'once-off',
+    description: 'For small businesses that need clarity, fast.',
+    features: [
+      'Social media audit (1–2 platforms)',
+      'High-level performance & engagement review',
+      'Content, tone & messaging assessment',
+      'Audience & engagement insights',
+      '5 clear, prioritised recommendations',
+      'Perfect for founders managing their own social media',
+    ],
+    outcome: '“I finally understand what’s happening and what to fix first.”',
+    cta: 'Get Insights',
+    isPrimary: false,
+  },
+  {
+    name: 'Strategic Growth & Guidance',
+    price: 'R5,500',
+    period: 'per month',
+    description: 'Ongoing strategist support for small teams ready to improve.',
+    features: [
+      'Everything in Insights Access',
+      'Monthly performance & audience review',
+      'Strategic content & messaging direction',
+      'Clear guidance on what to focus on next',
+      'One monthly strategy call or voice-note summary',
+      'Email or WhatsApp support for quick questions',
+    ],
+    outcome: '“I know exactly what to focus on each month.”',
+    cta: 'Work With a Strategist',
+    isPrimary: true,
+  },
+  {
+    name: 'Strategic Partnership',
+    price: 'R8,500',
+    period: 'per month',
+    description: 'A hands-on strategist supporting your decisions month to month.',
+    features: [
+        'Everything in Strategic Growth',
+        'Deeper campaign & launch guidance',
+        'Trend & audience behaviour insights',
+        'Ongoing strategic advisory',
+        'Priority support & flexible check-ins',
+        'Leadership-level summaries and recommendations',
+    ],
+    outcome: '“I make better decisions with expert insight on hand.”',
+    cta: 'Become a Partner',
+    isPrimary: false,
+  },
 ];
 
 export function StrategistPricing() {
@@ -18,60 +63,52 @@ export function StrategistPricing() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">
-            Strategist-Led Support (We Use the Tools — You Get the Guidance)
+            Strategist-Led Support
           </h2>
           <p className="mt-4 text-foreground/80 md:text-xl">
-            For small business owners who want clarity, direction, and expert input — without learning or managing software.
+            We use the tools. You get the clarity, direction, and expert guidance — without dashboards, data, or software to manage.
           </p>
         </div>
-        <div className="mx-auto mt-12 grid max-w-2xl items-start gap-8">
-            <Card className="flex flex-col border-primary ring-2 ring-primary shadow-2xl">
+        <div className="mx-auto mt-12 grid max-w-6xl items-start gap-8 md:grid-cols-3">
+           {tiers.map((tier) => (
+            <Card key={tier.name} className={`relative flex flex-col ${tier.isPrimary ? 'border-primary ring-2 ring-primary shadow-2xl' : 'shadow-lg'}`}>
+                {tier.isPrimary && (
+                    <Badge className="absolute -top-3 left-1/2 -translate-x-1/2">RECOMMENDED</Badge>
+                )}
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-headline">Strategist-Led Insights Support</CardTitle>
+                <CardTitle className="text-2xl font-headline">{tier.name}</CardTitle>
+                <CardDescription>{tier.description}</CardDescription>
                 <div className="mt-4">
                   <span className="text-4xl font-bold">
-                    R5,500
+                    {tier.price}
                   </span>
-                  <span className="text-sm text-muted-foreground"> / month</span>
+                  <span className="text-sm text-muted-foreground"> · {tier.period}</span>
                 </div>
-                 <CardDescription className="pt-2">Expert strategy, powered by insights tools — managed entirely on your behalf.</CardDescription>
               </CardHeader>
-              <CardContent className="flex-1 space-y-8">
+              <CardContent className="flex-1 space-y-4">
                 <ul className="space-y-3 text-left">
-                  {includedFeatures.map((feature) => (
+                  {tier.features.map((feature) => (
                     <li key={feature} className="flex items-start gap-3">
                       <Check className="h-5 w-5 flex-shrink-0 text-primary mt-1" />
                       <span>{feature}</span>
                     </li>
                   ))}
                 </ul>
-
-                <div className="rounded-lg border bg-muted/50 p-6 text-center">
-                    <p className="text-lg font-medium italic text-foreground">“I don’t have to figure this out alone. I know what to focus on each month.”</p>
-                </div>
-                
-                <div>
-                    <h4 className="font-semibold text-center mb-2">What this is not:</h4>
-                    <ul className="text-sm text-muted-foreground space-y-1 text-center">
-                        <li>• No platform access required</li>
-                        <li>• No dashboards to learn</li>
-                        <li>• No daily posting or content creation</li>
-                    </ul>
-                </div>
-
-              </CardContent>
-              <CardFooter className="flex-col">
-                <Button className="w-full" size="lg">
-                  Work With a Strategist
-                </Button>
-                <p className="mt-2 text-xs text-muted-foreground">
-                    Perfect for small businesses that want guidance, not another tool.
+                <p className="text-sm italic text-muted-foreground text-center pt-4">
+                    {tier.outcome}
                 </p>
+              </CardContent>
+              <CardFooter>
+                <Button className="w-full" size="lg" variant={tier.isPrimary ? 'default' : 'outline'}>
+                  {tier.cta}
+                </Button>
               </CardFooter>
             </Card>
+          ))}
         </div>
-        <div className="text-center mt-8">
+        <div className="text-center mt-8 space-y-2">
              <p className="text-xs text-muted-foreground">All prices are in South African Rand (ZAR) and exclude VAT.</p>
+             <p className="text-xs text-muted-foreground">These services are strategist-led and done for you. You do not need access to the Lweemee platform to benefit from this support.</p>
         </div>
       </div>
     </section>
