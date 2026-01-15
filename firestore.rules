@@ -37,10 +37,9 @@ service cloud.firestore {
       // Users can read/write their own profile.
       allow read, write: if request.auth.uid == userId;
 
-      // Allow reads on subcollections for workspace members
+      // Allow a user to read their own list of workspaces.
       match /workspaces/{workspaceId} {
-        allow read: if isWorkspaceMember(workspaceId);
-        allow write: if request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
     }
 
