@@ -39,7 +39,7 @@ service cloud.firestore {
 
       // Allow a user to read their own list of workspaces.
       match /workspaces/{workspaceId} {
-        allow read, write: if request.auth.uid == userId;
+        allow list, read, write: if request.auth.uid == userId;
       }
     }
 
@@ -69,7 +69,7 @@ service cloud.firestore {
       
       // Rules for 'connections', 'posts', 'recommendations', 'reports' and 'imports' subcollections.
       match /{collection}/{docId}
-      where collection in ['connections', 'posts', 'recommendations', 'reports', 'imports'] {
+      where collection in ['connections', 'posts', 'recommendations', 'reports', 'imports', 'members'] {
          allow read: if isViewer(workspaceId);
          allow create, update, delete: if isConsultant(workspaceId);
       }
