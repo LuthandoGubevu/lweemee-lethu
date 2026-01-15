@@ -47,16 +47,15 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow update, delete: if isAdmin(workspaceId);
       
-      // Rules for 'members' subcollection.
-      // Allow any member to list and read other members.
+      // Admins/Consultants can write. Users can create their own member doc during workspace creation.
+      // Any member of the workspace can view the member list.
       match /members/{memberId} {
-         // Admins/Consultants can write. Users can create their own member doc during workspace creation.
          allow write: if isConsultant(workspaceId) || (request.auth.uid == memberId && request.method == 'create');
-         // Allow any member of the workspace to view the member list.
          allow read: if isWorkspaceMember(workspaceId);
       }
       
       // Rules for data subcollections.
+      // Viewers can read, Consultants can write.
       match /connections/{connectionId} {
          allow read: if isViewer(workspaceId);
          allow write: if isConsultant(workspaceId);
@@ -79,14 +78,20 @@ service cloud.firestore {
       }
 
       // Rules for metrics and audience snapshots, written by backend processes.
+      // Allow any viewer to read these collections.
       match /postMetrics/{postId} {
         allow read: if isViewer(workspaceId);
         allow write: if false; 
       }
-      
-      // Rules for nested metrics collections.
-      match /connections/{connectionId}/{collection}/{docId}
-      where collection in ['dailyMetrics', 'monthlyMetrics', 'audienceSnapshots'] {
+      match /connections/{connectionId}/dailyMetrics/{dailyMetricsId} {
+        allow read: if isViewer(workspaceId);
+        allow write: if false; 
+      }
+      match /connections/{connectionId}/monthlyMetrics/{monthlyMetricsId} {
+        allow read: if isViewer(workspaceId);
+        allow write: if false; 
+      }
+       match /connections/{connectionId}/audienceSnapshots/{snapshotId} {
         allow read: if isViewer(workspaceId);
         allow write: if false; 
       }
