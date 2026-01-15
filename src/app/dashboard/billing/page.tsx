@@ -4,14 +4,47 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { usePlan } from "@/hooks/use-plan";
 import { Button } from "@/components/ui/button";
-import { Check, Loader } from "lucide-react";
+import { Check, Loader, ShieldAlert } from "lucide-react";
 import { PLANS } from "@/lib/plans";
 import { Progress } from "@/components/ui/progress";
+import { useUser, useCollection } from '@/firebase';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+
+interface Member {
+    id: string;
+    userId: string;
+    role: 'admin' | 'consultant' | 'client' | 'viewer';
+}
 
 export default function BillingPage() {
-    const { plan, limits, usage, loading } = usePlan();
+    const { user } = useUser();
+    const [currentWorkspaceId] = useLocalStorage<string | null>('currentWorkspaceId', null);
 
-    if (loading) {
+    const { data: members, loading: membersLoading } = useCollection<Member>(
+        currentWorkspaceId ? `workspaces/${currentWorkspaceId}/members` : ''
+    );
+    
+    // Defer fetching plan data until we confirm the user is an admin.
+    const currentUserMemberInfo = members.find(m => m.userId === user?.uid);
+    const isAdmin = currentUserMemberInfo?.role === 'admin';
+    
+    const { plan, limits, usage, loading: planLoading } = usePlan(isAdmin);
+
+    if (membersLoading) {
+        return <div className="flex justify-center items-center h-full"><Loader className="h-8 w-8 animate-spin" /></div>
+    }
+
+    if (!isAdmin) {
+        return (
+            <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed border-destructive/50 p-12 text-center h-full">
+                <ShieldAlert className="h-12 w-12 text-destructive" />
+                <h3 className="text-xl font-bold tracking-tight text-destructive mt-4">Access Denied</h3>
+                <p className="text-sm text-muted-foreground mt-2">Only workspace administrators can manage billing.</p>
+            </div>
+        )
+    }
+
+    if (planLoading) {
         return <div className="flex justify-center items-center h-full"><Loader className="h-8 w-8 animate-spin" /></div>
     }
 

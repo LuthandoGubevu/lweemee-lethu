@@ -11,16 +11,16 @@ interface BillingInfo {
     status: 'active' | 'inactive' | 'trialing';
 }
 
-export function usePlan() {
+export function usePlan(enabled: boolean = true) {
     const firestore = useFirestore();
     const [currentWorkspaceId] = useLocalStorage<string | null>('currentWorkspaceId', null);
 
     const { data: billingInfo, loading: billingLoading } = useDoc<BillingInfo>(
-        currentWorkspaceId ? `workspaces/${currentWorkspaceId}/billing/config` : ''
+        currentWorkspaceId && enabled ? `workspaces/${currentWorkspaceId}/billing/config` : ''
     );
 
     const { data: connections, loading: connectionsLoading } = useCollection<{id: string}>(
-        currentWorkspaceId ? `workspaces/${currentWorkspaceId}/connections` : ''
+        currentWorkspaceId && enabled ? `workspaces/${currentWorkspaceId}/connections` : ''
     );
     
     const [reportsCount, setReportsCount] = useState(0);
@@ -28,7 +28,7 @@ export function usePlan() {
 
     useEffect(() => {
         const fetchReportCount = async () => {
-            if (!firestore || !currentWorkspaceId) {
+            if (!firestore || !currentWorkspaceId || !enabled) {
                 setReportsLoading(false);
                 return;
             };
@@ -51,7 +51,7 @@ export function usePlan() {
         }
         fetchReportCount();
 
-    }, [currentWorkspaceId, firestore]);
+    }, [currentWorkspaceId, firestore, enabled]);
 
     const planId = billingInfo?.plan || 'Starter';
     const plan = PLANS[planId];
@@ -59,6 +59,15 @@ export function usePlan() {
     const usage = {
         connections: connections.length,
         reports: reportsCount,
+    }
+
+    if (!enabled) {
+        return {
+            plan: null,
+            limits: null,
+            usage: { connections: 0, reports: 0},
+            loading: false,
+        }
     }
 
     return {
