@@ -1,0 +1,285 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "A user's public profile information.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The user's unique ID."
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "The user's email address."
+        },
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the user's profile picture."
+        }
+      },
+      "required": ["uid", "email"]
+    },
+    "Workspace": {
+      "title": "Workspace",
+      "description": "A workspace for a team to collaborate.",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "The name of the workspace."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the workspace was created."
+        }
+      },
+      "required": ["name", "createdAt"]
+    },
+    "WorkspaceMember": {
+      "title": "Workspace Member",
+      "description": "A member of a workspace.",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "The ID of the user."
+        },
+        "role": {
+          "type": "string",
+          "enum": ["admin", "consultant", "client", "viewer"],
+          "description": "The role of the user in the workspace."
+        }
+      },
+      "required": ["userId", "role"]
+    },
+    "TikTokConnection": {
+      "title": "TikTok Connection",
+      "description": "A connection to a TikTok account.",
+      "type": "object",
+      "properties": {
+        "handle": {
+          "type": "string",
+          "description": "The TikTok handle."
+        },
+        "connectionType": {
+          "type": "string",
+          "enum": ["oauth", "handle", "manual"],
+          "description": "The type of connection."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the connection was created."
+        }
+      },
+      "required": ["handle", "connectionType", "createdAt"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "A post to be published on TikTok.",
+      "type": "object",
+      "properties": {
+        "content": {
+          "type": "string",
+          "description": "The content of the post."
+        },
+        "mediaUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL of the media associated with the post."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["draft", "scheduled", "published", "failed"],
+          "description": "The status of the post."
+        },
+        "scheduledAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the post is scheduled to be published."
+        },
+        "publishedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the post was published."
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "The date and time the post was created."
+        }
+      },
+      "required": ["content", "status", "createdAt"]
+    },
+    "PostMetrics": {
+      "title": "Post Metrics",
+      "description": "Metrics for a single post.",
+      "type": "object",
+      "properties": {
+        "views": { "type": "number" },
+        "likes": { "type": "number" },
+        "comments": { "type": "number" },
+        "shares": { "type": "number" },
+        "watchTime": { "type": "number", "description": "Total watch time in seconds." },
+        "videoLength": { "type": "number", "description": "Video length in seconds." },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["views", "likes", "comments", "shares", "lastUpdated"]
+    },
+    "MetricsDaily": {
+      "title": "Daily Metrics",
+      "description": "Daily aggregated metrics for a TikTok account.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "followers": { "type": "number" },
+        "totalViews": { "type": "number" },
+        "totalLikes": { "type": "number" },
+        "totalComments": { "type": "number" },
+        "totalShares": { "type": "number" }
+      },
+      "required": ["date", "followers"]
+    },
+    "MetricsMonthly": {
+      "title": "Monthly Metrics",
+      "description": "Monthly aggregated metrics for a TikTok account.",
+      "type": "object",
+      "properties": {
+        "month": { "type": "string", "description": "Format: YYYY-MM" },
+        "followers": { "type": "number" },
+        "totalViews": { "type": "number" },
+        "totalLikes": { "type": "number" },
+        "totalComments": { "type": "number" },
+        "totalShares": { "type": "number" }
+      },
+      "required": ["month", "followers"]
+    },
+    "AudienceSnapshot": {
+      "title": "Audience Snapshot",
+      "description": "A snapshot of audience demographics.",
+      "type": "object",
+      "properties": {
+        "date": { "type": "string", "format": "date" },
+        "gender": {
+          "type": "object",
+          "properties": {
+            "male": { "type": "number" },
+            "female": { "type": "number" },
+            "other": { "type": "number" }
+          }
+        },
+        "age": {
+          "type": "object",
+          "properties": {
+            "13-17": { "type": "number" },
+            "18-24": { "type": "number" },
+            "25-34": { "type": "number" },
+            "35-44": { "type": "number" },
+            "45+": { "type": "number" }
+          }
+        },
+        "countries": {
+          "type": "object",
+          "description": "Key-value pairs of country codes and percentages."
+        }
+      },
+      "required": ["date"]
+    },
+    "Recommendation": {
+      "title": "Recommendation",
+      "description": "A recommendation from a consultant.",
+      "type": "object",
+      "properties": {
+        "note": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "in-progress", "completed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["note", "status", "createdAt", "authorId"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "Metadata for a generated report.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "pdfUrl": { "type": "string", "format": "uri" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["name", "pdfUrl", "createdAt"]
+    },
+    "Billing": {
+      "title": "Billing",
+      "description": "Billing information for a workspace.",
+      "type": "object",
+      "properties": {
+        "plan": { "type": "string", "enum": ["insights-access", "strategy-plus", "partnership"] },
+        "status": { "type": "string", "enum": ["active", "inactive", "trialing"] },
+        "stripeCustomerId": { "type": "string" },
+        "subscriptionId": { "type": "string" }
+      },
+      "required": ["plan", "status"]
+    }
+  },
+  "auth": {
+    "providers": ["email", "google"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/UserProfile" },
+      "description": "Stores public information about a user."
+    },
+    "/workspaces/{workspaceId}": {
+      "schema": { "$ref": "#/entities/Workspace" },
+      "description": "Top-level collection for workspaces."
+    },
+    "/workspaces/{workspaceId}/members/{userId}": {
+      "schema": { "$ref": "#/entities/WorkspaceMember" },
+      "description": "Manages members and their roles within a workspace."
+    },
+    "/workspaces/{workspaceId}/connections/{connectionId}": {
+      "schema": { "$ref": "#/entities/TikTokConnection" },
+      "description": "Stores TikTok account connections for a workspace."
+    },
+    "/workspaces/{workspaceId}/posts/{postId}": {
+      "schema": { "$ref": "#/entities/Post" },
+      "description": "All posts created within a workspace."
+    },
+    "/workspaces/{workspaceId}/postMetrics/{postId}": {
+      "schema": { "$ref": "#/entities/PostMetrics" },
+      "description": "Performance metrics for individual posts."
+    },
+    "/workspaces/{workspaceId}/connections/{connectionId}/dailyMetrics/{dailyMetricsId}": {
+      "schema": { "$ref": "#/entities/MetricsDaily" },
+      "description": "Daily aggregated metrics for a specific TikTok connection."
+    },
+    "/workspaces/{workspaceId}/connections/{connectionId}/monthlyMetrics/{monthlyMetricsId}": {
+      "schema": { "$ref": "#/entities/MetricsMonthly" },
+      "description": "Monthly aggregated metrics for a specific TikTok connection."
+    },
+    "/workspaces/{workspaceId}/connections/{connectionId}/audienceSnapshots/{snapshotId}": {
+      "schema": { "$ref": "#/entities/AudienceSnapshot" },
+      "description": "Audience demographic snapshots for a TikTok connection."
+    },
+    "/workspaces/{workspaceId}/recommendations/{recommendationId}": {
+      "schema": { "$ref": "#/entities/Recommendation" },
+      "description": "Consultant recommendations for a workspace."
+    },
+    "/workspaces/{workspaceId}/reports/{reportId}": {
+      "schema": { "$ref": "#/entities/Report" },
+      "description": "Metadata for generated reports in a workspace."
+    },
+    "/workspaces/{workspaceId}/billing/config": {
+        "schema": { "$ref": "#/entities/Billing" },
+        "description": "Billing configuration for the workspace (singleton document)."
+    }
+  }
+}
