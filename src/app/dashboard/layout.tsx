@@ -14,7 +14,7 @@ import {
   SidebarMenuButton,
   SidebarGroup,
 } from '@/components/ui/sidebar';
-import { BotMessageSquare, Settings, LayoutDashboard, Users, PlusCircle, Link2, Send, BarChart3, FileText, PieChart } from 'lucide-react';
+import { BotMessageSquare, Settings, LayoutDashboard, Users, PlusCircle, Link2, Send, BarChart3, FileText, PieChart, Lightbulb, FileDown } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -120,6 +120,22 @@ export default function DashboardLayout({
                 <Link href="/dashboard/publish">
                   <Send />
                   <span>Publish</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Recommendations">
+                <Link href="/dashboard/recommendations">
+                  <Lightbulb />
+                  <span>Recommendations</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Reports">
+                <Link href="/dashboard/reports">
+                  <FileDown />
+                  <span>Reports</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

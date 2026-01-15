@@ -1,3 +1,4 @@
+
 {
   "entities": {
     "UserProfile": {
@@ -149,12 +150,17 @@
       "description": "A recommendation from a consultant.",
       "type": "object",
       "properties": {
-        "note": { "type": "string" },
-        "status": { "type": "string", "enum": ["pending", "in-progress", "completed"] },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "priority": { "type": "string", "enum": ["low", "medium", "high"] },
+        "status": { "type": "string", "enum": ["todo", "in-progress", "done"] },
+        "evidenceLinks": { "type": "array", "items": { "type": "string", "format": "uri" } },
         "createdAt": { "type": "string", "format": "date-time" },
-        "authorId": { "type": "string" }
+        "createdBy": { "type": "string", "description": "User ID of the recommendation author." },
+        "acknowledgedAt": { "type": "string", "format": "date-time" },
+        "acknowledgedBy": { "type": "string", "description": "User ID of the client who acknowledged." }
       },
-      "required": ["note", "status", "createdAt", "authorId"]
+      "required": ["title", "description", "priority", "status", "createdAt", "createdBy"]
     },
     "Report": {
       "title": "Report",
@@ -163,9 +169,11 @@
       "properties": {
         "name": { "type": "string" },
         "pdfUrl": { "type": "string", "format": "uri" },
-        "createdAt": { "type": "string", "format": "date-time" }
+        "status": { "type": "string", "enum": ["generating", "completed", "failed"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "createdBy": { "type": "string", "description": "User ID of the report creator." }
       },
-      "required": ["name", "pdfUrl", "createdAt"]
+      "required": ["name", "status", "createdAt", "createdBy"]
     },
     "Billing": {
       "title": "Billing",
