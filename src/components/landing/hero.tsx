@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 
@@ -5,7 +6,7 @@ export function Hero() {
   return (
     <section className="relative w-full py-20 md:py-32 lg:py-40 text-white">
        <Image
-          src="https://picsum.photos/seed/hero/1920/1080"
+          src="/background.jpg"
           alt="Abstract background"
           layout="fill"
           objectFit="cover"
