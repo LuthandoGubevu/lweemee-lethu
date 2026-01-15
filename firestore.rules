@@ -65,9 +65,9 @@ service cloud.firestore {
         allow delete: if isConsultant(workspaceId);
       }
       
-      // Rules for 'connections', 'posts', 'recommendations', and 'reports' subcollections.
+      // Rules for 'connections', 'posts', 'recommendations', 'reports' and 'imports' subcollections.
       match /{collection}/{docId}
-      where collection in ['connections', 'posts', 'recommendations', 'reports'] {
+      where collection in ['connections', 'posts', 'recommendations', 'reports', 'imports'] {
          allow read: if isViewer(workspaceId);
          allow create, update, delete: if isConsultant(workspaceId);
       }
