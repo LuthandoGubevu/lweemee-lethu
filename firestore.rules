@@ -39,7 +39,7 @@ service cloud.firestore {
 
       // Allow a user to read their own list of workspaces.
       match /workspaces/{workspaceId} {
-        allow read, write: if request.auth.uid == userId;
+        allow list, read, write: if request.auth.uid == userId;
       }
     }
 
