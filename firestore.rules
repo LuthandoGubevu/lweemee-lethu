@@ -1,0 +1,90 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions to check user roles and permissions.
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function getRole(workspaceId) {
+      return get(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid)).data.role;
+    }
+
+    function isWorkspaceMember(workspaceId) {
+      return exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid));
+    }
+
+    function isAdmin(workspaceId) {
+      return isSignedIn() && getRole(workspaceId) == 'admin';
+    }
+
+    function isConsultant(workspaceId) {
+      return isSignedIn() && getRole(workspaceId) in ['admin', 'consultant'];
+    }
+    
+    function isClient(workspaceId) {
+        return isSignedIn() && getRole(workspaceId) in ['admin', 'consultant', 'client'];
+    }
+
+    function isViewer(workspaceId) {
+      return isSignedIn() && getRole(workspaceId) in ['admin', 'consultant', 'client', 'viewer'];
+    }
+
+    // Rules for the 'users' collection.
+    match /users/{userId} {
+      // Users can read their own profile.
+      // Users can create their own profile.
+      // Users can update their own profile.
+      allow read, create, update: if request.auth.uid == userId;
+      // Users cannot delete their own profile through the client.
+      allow delete: if false;
+    }
+
+    // Rules for the 'workspaces' collection and its subcollections.
+    match /workspaces/{workspaceId} {
+      // Allow read if the user is a member of the workspace.
+      allow read: if isWorkspaceMember(workspaceId);
+      // Allow create by any signed-in user. The creator is typically added as the first admin member.
+      allow create: if isSignedIn();
+      // Allow update only by admins.
+      allow update: if isAdmin(workspaceId);
+      // Allow delete only by admins.
+      allow delete: if isAdmin(workspaceId);
+
+      // Rules for the 'members' subcollection.
+      match /members/{userId} {
+        // Allow read for any member of the workspace.
+        allow read: if isWorkspaceMember(workspaceId);
+        // Allow create (inviting) and update (changing roles) only for admins.
+        allow create, update: if isAdmin(workspaceId);
+        // Allow delete (removing members) only for admins.
+        allow delete: if isAdmin(workspaceId);
+      }
+      
+      // Rules for 'connections', 'posts', 'recommendations', and 'reports' subcollections.
+      match /{collection}/{docId}
+      where collection in ['connections', 'posts', 'recommendations', 'reports'] {
+         allow read: if isViewer(workspaceId);
+         allow create, update, delete: if isConsultant(workspaceId);
+      }
+
+      // Rules for metrics and audience snapshots.
+      match /{collection}/{docId}
+      where collection in ['postMetrics', 'dailyMetrics', 'monthlyMetrics', 'audienceSnapshots'] {
+        allow read: if isViewer(workspaceId);
+        // Metrics and snapshots are typically written by a backend process, not the client.
+        allow write: if false; 
+      }
+      
+      // Rules for the 'billing' singleton document.
+      match /billing/config {
+        // Only admins can read billing info.
+        allow read: if isAdmin(workspaceId);
+        // Only admins can create or update billing info.
+        allow write: if isAdmin(workspaceId);
+      }
+    }
+  }
+}
