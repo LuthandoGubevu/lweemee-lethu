@@ -39,7 +39,7 @@ service cloud.firestore {
 
       // Allow a user to read their own list of workspaces.
       match /workspaces/{workspaceId} {
-        allow list, read, write: if request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
     }
 
@@ -58,8 +58,11 @@ service cloud.firestore {
       match /members/{memberId} {
         // Allow read for any member of the workspace.
         allow read: if isWorkspaceMember(workspaceId);
-        // Allow create (inviting) and update (changing roles) only for admins or consultants.
-        allow create, update: if isConsultant(workspaceId);
+        // Allow a user to create their own membership record when a workspace is created.
+        // Allow admins or consultants to invite new members.
+        allow create: if (request.auth.uid == memberId) || isConsultant(workspaceId);
+        // Allow update (changing roles) only for admins or consultants.
+        allow update: if isConsultant(workspaceId);
         // Allow delete (removing members) only for admins or consultants.
         allow delete: if isConsultant(workspaceId);
       }
