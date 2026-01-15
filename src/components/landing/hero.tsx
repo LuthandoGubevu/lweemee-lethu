@@ -14,6 +14,7 @@ export function Hero() {
           data-ai-hint="abstract purple"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent z-10"></div>
+        <div className="absolute inset-0 bg-primary/30 z-10"></div>
       <div className="container relative z-20 mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-4xl text-center">
           <div className="mb-4 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
