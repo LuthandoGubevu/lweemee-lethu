@@ -42,7 +42,7 @@ import { useToast } from '@/hooks/use-toast';
 
 
 interface Member {
-  id: string;
+  id: string; // This will be the user's UID
   userId: string;
   email: string;
   displayName: string;
@@ -72,6 +72,7 @@ export default function MembersPage() {
   }, [user, userLoading, router]);
 
   const getInitials = (name: string) => {
+    if (!name) return 'U';
     const names = name.split(' ');
     if (names.length > 1) {
       return names[0][0] + names[names.length - 1][0];
@@ -79,7 +80,7 @@ export default function MembersPage() {
     return name[0];
   };
 
-  const handleRemoveMember = async (memberId: string, memberUserId: string) => {
+  const handleRemoveMember = async (memberUserId: string) => {
       if (!firestore || !currentWorkspaceId) return;
 
       if (user?.uid === memberUserId) {
@@ -88,8 +89,8 @@ export default function MembersPage() {
       }
 
       try {
-          // Remove from workspace members subcollection
-          await deleteDoc(doc(firestore, `workspaces/${currentWorkspaceId}/members`, memberId));
+          // Remove from workspace members subcollection (doc id is the userId)
+          await deleteDoc(doc(firestore, `workspaces/${currentWorkspaceId}/members`, memberUserId));
           // Remove from user's workspaces list
           await deleteDoc(doc(firestore, `users/${memberUserId}/workspaces`, currentWorkspaceId));
 
@@ -186,7 +187,7 @@ export default function MembersPage() {
                         <DropdownMenuContent>
                             <DropdownMenuItem
                                 className="text-destructive"
-                                onClick={() => handleRemoveMember(member.id, member.userId)}
+                                onClick={() => handleRemoveMember(member.userId)}
                             >
                                 <Trash2 className="mr-2 h-4 w-4" />
                                 Remove

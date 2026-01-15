@@ -22,7 +22,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useFirestore, useUser } from '@/firebase';
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { collection, addDoc, query, where, getDocs } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, doc, setDoc, getDoc } from 'firebase/firestore';
 
 const inviteSchema = z.object({
   email: z.string().email(),
@@ -66,11 +66,14 @@ export function InviteMemberForm() {
             return;
         }
 
-        const invitedUser = querySnapshot.docs[0].data();
-        const invitedUserId = querySnapshot.docs[0].id;
+        const invitedUserDoc = querySnapshot.docs[0];
+        const invitedUser = invitedUserDoc.data();
+        const invitedUserId = invitedUserDoc.id;
 
-        const membersRef = collection(firestore, `workspaces/${currentWorkspaceId}/members`);
-        await addDoc(membersRef, {
+        const membersCollectionRef = collection(firestore, `workspaces/${currentWorkspaceId}/members`);
+        const memberDocRef = doc(membersCollectionRef, invitedUserId);
+        
+        await setDoc(memberDocRef, {
             userId: invitedUserId,
             email: invitedUser.email,
             displayName: invitedUser.displayName,
@@ -94,6 +97,7 @@ export function InviteMemberForm() {
         form.reset();
 
     } catch (error: any) {
+        console.error("Error inviting member:", error);
         toast({
             title: 'Invite Failed',
             description: error.message,

@@ -3,15 +3,12 @@
 import { useState } from 'react';
 import {
   getAuth,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  User,
+  UserCredential,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Card,
   CardContent,
@@ -20,71 +17,57 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import { Chrome } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
 import { useUser, useFirestore } from '@/firebase';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
-export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isSignUp, setIsSignUp] = useState(false);
+import Step1AccountDetails from '@/components/signup/step1-account-details';
+import Step2BusinessDetails from '@/components/signup/step2-business-details';
+import Step3ServiceSelection from '@/components/signup/step3-service-selection';
+
+export default function SignupPage() {
+  const [step, setStep] = useState(1);
+  const [formData, setFormData] = useState({});
+  const [user, setUser] = useState<User | null>(null);
+
   const router = useRouter();
   const { toast } = useToast();
-  const { user, loading } = useUser();
+  const { user: existingUser, loading } = useUser();
   const firestore = useFirestore();
 
   if (loading) return <div>Loading...</div>;
-  if (user) {
+  if (existingUser) {
     router.push('/dashboard');
     return null;
   }
-
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const auth = getAuth();
-    try {
-      if (isSignUp) {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
-        if (firestore && user) {
-            await setDoc(doc(firestore, "users", user.uid), {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
-            });
-        }
-        toast({ title: 'Success', description: 'Account created! Please log in.' });
-        setIsSignUp(false);
-      } else {
-        await signInWithEmailAndPassword(auth, email, password);
-        router.push('/dashboard');
-      }
-    } catch (error: any) {
-      toast({
-        variant: 'destructive',
-        title: 'Authentication Failed',
-        description: error.message,
-      });
-    }
-  };
 
   const handleGoogleSignIn = async () => {
     const auth = getAuth();
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
-      const user = result.user;
-       if (firestore && user) {
-            await setDoc(doc(firestore, "users", user.uid), {
-                uid: user.uid,
-                email: user.email,
-                displayName: user.displayName,
-                photoURL: user.photoURL,
+      const googleUser = result.user;
+      
+      if (firestore && googleUser) {
+        const userRef = doc(firestore, 'users', googleUser.uid);
+        const userDoc = await getDoc(userRef);
+        
+        if (!userDoc.exists() || !userDoc.data()?.onboardingComplete) {
+            // New user or incomplete onboarding
+             await setDoc(userRef, {
+                uid: googleUser.uid,
+                email: googleUser.email,
+                displayName: googleUser.displayName,
+                photoURL: googleUser.photoURL,
+                createdAt: serverTimestamp(),
+                source: 'google',
             }, { merge: true });
+            setUser(googleUser);
+            setStep(2); // Go to step 2
+        } else {
+            // Existing user, go to dashboard
+            router.push('/dashboard');
         }
-      router.push('/dashboard');
+      }
     } catch (error: any) {
       toast({
         variant: 'destructive',
@@ -94,77 +77,112 @@ export default function LoginPage() {
     }
   };
 
+  const nextStep = (data: any) => {
+    setFormData((prev) => ({ ...prev, ...data }));
+    setStep((prev) => prev + 1);
+  };
+
+  const prevStep = () => {
+    setStep((prev) => prev - 1);
+  };
+  
+  const handleUserCreated = (user: User, data: any) => {
+      setUser(user);
+      nextStep(data);
+  }
+
+  const finalSubmit = async (data: any) => {
+    const finalData = { ...formData, ...data };
+
+    if (!firestore || !user) {
+        toast({ title: "Error", description: "User session not found.", variant: "destructive"});
+        return;
+    }
+
+    try {
+        const userRef = doc(firestore, 'users', user.uid);
+        
+        const userData = {
+            uid: user.uid,
+            email: user.email,
+            displayName: (finalData as any).fullName || user.displayName,
+            profile: {
+                businessName: (finalData as any).businessName,
+                role: (finalData as any).role,
+                industry: (finalData as any).industry,
+                country: (finalData as any).country,
+                teamSize: (finalData as any).teamSize,
+                websiteOrInstagram: (finalData as any).websiteOrInstagram,
+            },
+            serviceIntent: {
+                type: (finalData as any).serviceType,
+                managesMultipleBrands: (finalData as any).managesMultipleBrands,
+                brandCount: (finalData as any).brandCount,
+                supportType: (finalData as any).supportType,
+                mainGoal: (finalData as any).mainGoal,
+                contactMethod: (finalData as any).contactMethod,
+            },
+            onboardingComplete: true,
+            updatedAt: serverTimestamp(),
+        }
+
+        await setDoc(userRef, userData, { merge: true });
+
+        toast({ title: "Welcome to Lweemee!", description: "Your account has been created."});
+        
+        // Routing logic
+        const serviceType = (finalData as any).serviceType;
+        if (serviceType === 'platform' || serviceType === 'both') {
+            router.push('/dashboard/workspaces/new');
+        } else if (serviceType === 'strategist') {
+            // Assuming no /book-demo page exists, redirect to dashboard for now
+            router.push('/dashboard'); 
+        } else {
+             router.push('/dashboard');
+        }
+
+    } catch (error: any) {
+        toast({ title: "An error occurred", description: error.message, variant: 'destructive'})
+    }
+
+  };
+
+  const steps = [
+    {
+      title: 'Create Your Account',
+      description: 'Get started with Lweemee in a few simple steps.',
+      step: 1,
+      component: <Step1AccountDetails onNext={handleUserCreated} onGoogleSignIn={handleGoogleSignIn} />,
+    },
+    {
+      title: 'Tell Us About Your Business',
+      description: "This helps us tailor your experience.",
+      step: 2,
+      component: <Step2BusinessDetails onNext={nextStep} onBack={prevStep} />,
+    },
+    {
+      title: 'What Are You Looking For?',
+      description: 'Choose the service that best fits your needs.',
+      step: 3,
+      component: <Step3ServiceSelection onBack={prevStep} onSubmit={finalSubmit} />,
+    },
+  ];
+
+  const currentStepData = steps[step - 1];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <Card className="w-full max-w-sm">
+    <div className="flex min-h-screen items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
+            <p className="text-sm font-medium text-muted-foreground">Step {step} of {steps.length}</p>
           <CardTitle className="text-2xl font-headline">
-            {isSignUp ? 'Create an Account' : 'Welcome Back'}
+            {currentStepData.title}
           </CardTitle>
           <CardDescription>
-            {isSignUp
-              ? 'Enter your details to create a new account.'
-              : 'Enter your credentials to access your account.'}
+            {currentStepData.description}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <form onSubmit={handleAuth} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-            <Button type="submit" className="w-full">
-              {isSignUp ? 'Sign Up' : 'Log In'}
-            </Button>
-          </form>
-           <Separator className="my-4" />
-           <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
-            <Chrome className="mr-2 h-4 w-4" />
-            Sign in with Google
-          </Button>
-          <div className="mt-4 text-center text-sm">
-            {isSignUp ? (
-              <>
-                Already have an account?{' '}
-                <Button
-                  variant="link"
-                  onClick={() => setIsSignUp(false)}
-                  className="p-0"
-                >
-                  Log In
-                </Button>
-              </>
-            ) : (
-              <>
-                Don't have an account?{' '}
-                <Button
-                  variant="link"
-                  onClick={() => setIsSignUp(true)}
-                  className="p-0"
-                >
-                  Sign Up
-                </Button>
-              </>
-            )}
-          </div>
-        </CardContent>
+        <CardContent>{currentStepData.component}</CardContent>
       </Card>
     </div>
   );
