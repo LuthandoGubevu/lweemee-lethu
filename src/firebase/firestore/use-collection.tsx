@@ -7,6 +7,7 @@ import {
   collection,
   query,
   onSnapshot,
+  where,
   type DocumentData,
   type CollectionReference,
   type Query,
@@ -29,12 +30,12 @@ export function useCollection<T>(path: string, options?: {
     if (!firestore) return;
 
     try {
+      let q: Query | CollectionReference = collection(firestore, path);
       if (options?.where) {
         const [field, op, value] = options.where;
-        queryRef.current = query(collection(firestore, path), where(field, op, value));
-      } else {
-        queryRef.current = collection(firestore, path);
+        q = query(q, where(field, op, value));
       }
+      queryRef.current = q;
 
       const unsubscribe = onSnapshot(queryRef.current, (snapshot) => {
         const docs = snapshot.docs.map(doc => ({ ...doc.data() as T, id: doc.id }));
@@ -56,7 +57,8 @@ export function useCollection<T>(path: string, options?: {
       setError(e);
       setLoading(false);
     }
-  }, [firestore, path, options?.where]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firestore, path, JSON.stringify(options?.where)]);
 
   return { data, loading, error };
 }

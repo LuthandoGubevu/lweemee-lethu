@@ -6,6 +6,9 @@ import Link from 'next/link';
 import { Menu, X, BotMessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { useUser } from '@/firebase/auth/use-user';
+import { getAuth, signOut } from 'firebase/auth';
+import { useRouter } from 'next/navigation';
 
 const navLinks = [
   { href: '#how-it-works', label: 'How It Works' },
@@ -16,6 +19,14 @@ const navLinks = [
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { user } = useUser();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    const auth = getAuth();
+    await signOut(auth);
+    router.push('/');
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -37,11 +48,24 @@ export function Header() {
                 {link.label}
               </Link>
             ))}
+             {user && (
+              <Link href="/dashboard" className="font-medium text-foreground/60 transition-colors hover:text-foreground/80">
+                Dashboard
+              </Link>
+            )}
           </nav>
         </div>
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <Button variant="ghost">Log In</Button>
-          <Button className="bg-accent hover:bg-accent/90 text-accent-foreground">Get Started</Button>
+          {user ? (
+            <Button variant="ghost" onClick={handleLogout}>Log Out</Button>
+          ) : (
+            <Button variant="ghost" asChild>
+              <Link href="/login">Log In</Link>
+            </Button>
+          )}
+          <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
+            <Link href={user ? "/dashboard" : "/login"}>Get Started</Link>
+          </Button>
         </div>
         <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>
           <SheetTrigger asChild>
@@ -73,6 +97,11 @@ export function Header() {
                   {link.label}
                 </Link>
               ))}
+               {user && (
+                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="text-foreground">
+                  Dashboard
+                </Link>
+              )}
             </div>
           </SheetContent>
         </Sheet>
