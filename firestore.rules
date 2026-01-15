@@ -34,12 +34,11 @@ service cloud.firestore {
 
     // Rules for the 'users' collection.
     match /users/{userId} {
-      // Users can read/write their own profile.
+      // Users can read/write their own profile and list their own workspaces.
       allow read, write: if request.auth.uid == userId;
 
-      // Allow a user to read their own list of workspaces.
       match /workspaces/{workspaceId} {
-        allow list, read, write: if request.auth.uid == userId;
+        allow read, write: if request.auth.uid == userId;
       }
     }
 
@@ -53,41 +52,27 @@ service cloud.firestore {
       allow update: if isAdmin(workspaceId);
       // Allow delete only by admins.
       allow delete: if isAdmin(workspaceId);
-
-      // Rules for the 'members' subcollection.
-      match /members/{memberId} {
-        // Allow read for any member of the workspace.
-        allow read: if isWorkspaceMember(workspaceId);
-        // Allow a user to create their own membership record when a workspace is created.
-        // Allow admins or consultants to invite new members.
-        allow create: if (request.auth.uid == memberId) || isConsultant(workspaceId);
-        // Allow update (changing roles) only for admins or consultants.
-        allow update: if isConsultant(workspaceId);
-        // Allow delete (removing members) only for admins or consultants.
-        allow delete: if isConsultant(workspaceId);
-      }
       
       // Rules for 'connections', 'posts', 'recommendations', 'reports' and 'imports' subcollections.
       match /{collection}/{docId}
       where collection in ['connections', 'posts', 'recommendations', 'reports', 'imports', 'members'] {
+         // Viewers can see everything.
          allow read: if isViewer(workspaceId);
+         // Consultants and Admins can create/update/delete.
          allow create, update, delete: if isConsultant(workspaceId);
       }
 
-      // Rules for metrics and audience snapshots.
+      // Rules for metrics and audience snapshots. These are written by a backend process, not the client.
       match /{collection}/{docId}
       where collection in ['postMetrics', 'dailyMetrics', 'monthlyMetrics', 'audienceSnapshots'] {
         allow read: if isViewer(workspaceId);
-        // Metrics and snapshots are typically written by a backend process, not the client.
         allow write: if false; 
       }
       
       // Rules for the 'billing' singleton document.
       match /billing/config {
-        // Only admins can read billing info.
-        allow read: if isAdmin(workspaceId);
-        // Only admins can create or update billing info.
-        allow write: if isAdmin(workspaceId);
+        // Only admins can read and write billing info.
+        allow read, write: if isAdmin(workspaceId);
       }
     }
   }
