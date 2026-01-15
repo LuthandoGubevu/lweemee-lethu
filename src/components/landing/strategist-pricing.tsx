@@ -18,7 +18,7 @@ const tiers = [
       'Perfect for founders managing their own social media',
     ],
     outcome: '“I finally understand what’s happening and what to fix first.”',
-    cta: 'Get Insights',
+    cta: 'Get Strategic Support',
     isPrimary: false,
   },
   {
@@ -52,7 +52,7 @@ const tiers = [
         'Leadership-level summaries and recommendations',
     ],
     outcome: '“I make better decisions with expert insight on hand.”',
-    cta: 'Become a Partner',
+    cta: 'Become a Strategic Partner',
     isPrimary: false,
   },
 ];
@@ -63,10 +63,13 @@ export function StrategistPricing() {
       <div className="container mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-3xl text-center">
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl font-headline">
-            Strategist-Led Support
+            Strategist-Led Consulting
           </h2>
           <p className="mt-4 text-foreground/80 md:text-xl">
-            We use the tools. You get the clarity, direction, and expert guidance — without dashboards, data, or software to manage.
+            Done-for-you insights, analysis, and strategic guidance.
+          </p>
+           <p className="mt-4 text-sm text-muted-foreground max-w-2xl mx-auto">
+            This is expert support, not software. We use the tools on your behalf and translate data into clear direction and decisions. You don’t need dashboards, logins, or technical knowledge.
           </p>
         </div>
         <div className="mx-auto mt-12 grid max-w-6xl items-start gap-8 md:grid-cols-3">
@@ -108,7 +111,7 @@ export function StrategistPricing() {
         </div>
         <div className="text-center mt-8 space-y-2">
              <p className="text-xs text-muted-foreground">All prices are in South African Rand (ZAR) and exclude VAT.</p>
-             <p className="text-xs text-muted-foreground">These services are strategist-led and done for you. You do not need access to the Lweemee platform to benefit from this support.</p>
+             <p className="text-xs text-muted-foreground">Strategist-Led Consulting is a standalone service. You do not need access to the Lweemee platform to benefit from this support.</p>
         </div>
       </div>
     </section>
