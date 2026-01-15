@@ -51,20 +51,34 @@ service cloud.firestore {
       match /members/{memberId} {
          // Allow any member to see the list of other members.
          allow read: if isWorkspaceMember(workspaceId);
-         // Admins/Consultants can write. Users can create their own member doc (on invite/join).
+         // Admins/Consultants can write. Users can create their own member doc.
          allow write: if isConsultant(workspaceId) || (request.auth.uid == memberId && request.method == 'create');
       }
 
       // Rules for data subcollections.
-      match /{collection}/{docId}
-      where collection in ['connections', 'posts', 'recommendations', 'reports', 'imports'] {
+      match /connections/{connectionId} {
+         allow read: if isViewer(workspaceId);
+         allow write: if isConsultant(workspaceId);
+      }
+      match /posts/{postId} {
+         allow read: if isViewer(workspaceId);
+         allow write: if isConsultant(workspaceId);
+      }
+      match /recommendations/{recommendationId} {
+         allow read: if isViewer(workspaceId);
+         allow write: if isConsultant(workspaceId);
+      }
+       match /reports/{reportId} {
+         allow read: if isViewer(workspaceId);
+         allow write: if isConsultant(workspaceId);
+      }
+       match /imports/{importId} {
          allow read: if isViewer(workspaceId);
          allow write: if isConsultant(workspaceId);
       }
 
       // Rules for metrics and audience snapshots, written by backend processes.
-      match /{collection}/{docId}
-      where collection in ['postMetrics', 'dailyMetrics', 'monthlyMetrics', 'audienceSnapshots'] {
+      match /postMetrics/{postId} {
         allow read: if isViewer(workspaceId);
         allow write: if false; 
       }
