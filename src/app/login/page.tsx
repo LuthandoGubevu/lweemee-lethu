@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -5,8 +6,8 @@ import {
   getAuth,
   signInWithPopup,
   GoogleAuthProvider,
+  signInWithEmailAndPassword,
   User,
-  UserCredential,
 } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import {
@@ -16,6 +17,7 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
@@ -23,6 +25,7 @@ import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import Step1AccountDetails from '@/components/signup/step1-account-details';
 import Step2BusinessDetails from '@/components/signup/step2-business-details';
 import Step3ServiceSelection from '@/components/signup/step3-service-selection';
+import { LoginForm } from '@/components/login-form';
 
 export default function SignupPage() {
   const [step, setStep] = useState(1);
@@ -80,6 +83,21 @@ export default function SignupPage() {
       });
     }
   };
+
+  const handleLogin = async (data: any) => {
+    const auth = getAuth();
+    try {
+      await signInWithEmailAndPassword(auth, data.email, data.password);
+      toast({ title: "Login successful!" });
+      router.push('/dashboard');
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Login Failed',
+        description: error.message,
+      });
+    }
+  }
 
   const nextStep = (data: any) => {
     setFormData((prev) => ({ ...prev, ...data }));
@@ -156,7 +174,20 @@ export default function SignupPage() {
       title: 'Create Your Account',
       description: 'Get started with Lweemee in a few simple steps.',
       step: 1,
-      component: <Step1AccountDetails onNext={handleUserCreated} onGoogleSignIn={handleGoogleSignIn} />,
+      component: (
+        <Tabs defaultValue="signup" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                <TabsTrigger value="login">Log In</TabsTrigger>
+            </TabsList>
+            <TabsContent value="signup">
+                <Step1AccountDetails onNext={handleUserCreated} onGoogleSignIn={handleGoogleSignIn} />
+            </TabsContent>
+            <TabsContent value="login">
+                <LoginForm onLogin={handleLogin} onGoogleSignIn={handleGoogleSignIn} />
+            </TabsContent>
+        </Tabs>
+      )
     },
     {
       title: 'Tell Us About Your Business',
@@ -178,7 +209,7 @@ export default function SignupPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <Card className="w-full max-w-lg">
         <CardHeader className="text-center">
-            <p className="text-sm font-medium text-muted-foreground">Step {step} of {steps.length}</p>
+            {step > 1 && <p className="text-sm font-medium text-muted-foreground">Step {step} of {steps.length}</p>}
           <CardTitle className="text-2xl font-headline">
             {currentStepData.title}
           </CardTitle>
