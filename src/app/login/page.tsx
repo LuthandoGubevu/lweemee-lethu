@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   getAuth,
   signInWithPopup,
@@ -34,10 +34,14 @@ export default function SignupPage() {
   const { user: existingUser, loading } = useUser();
   const firestore = useFirestore();
 
-  if (loading) return <div>Loading...</div>;
-  if (existingUser) {
-    router.push('/dashboard');
-    return null;
+  useEffect(() => {
+    if (!loading && existingUser) {
+      router.push('/dashboard');
+    }
+  }, [loading, existingUser, router]);
+
+  if (loading || existingUser) {
+    return <div>Loading...</div>; // Show a loading indicator while redirecting
   }
 
   const handleGoogleSignIn = async () => {
