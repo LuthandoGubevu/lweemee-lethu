@@ -1,3 +1,28 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "tiktok-tracking",
+      "description": "An abstract representation of data tracking on a screen.",
+      "imageUrl": "https://images.unsplash.com/photo-1763038311036-6d18805537e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxkYXNoYm9hcmQlMjBjaGFydHxlbnwwfHx8fDE3NjgzNzcwMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dashboard chart"
+    },
+    {
+      "id": "social-listening",
+      "description": "An illustration showing comment bubbles and trend lines.",
+      "imageUrl": "https://images.unsplash.com/photo-1761864293808-dfb96001c534?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MXwxfHNlYXJjaHw4fHxzb2NpYWwlMjBtZWRpYXxlbnwwfHx8fDE3Njg0NjU5MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "social media"
+    },
+    {
+      "id": "custom-reports",
+      "description": "A clean and modern report document with charts and graphs.",
+      "imageUrl": "https://images.unsplash.com/photo-1754304342321-2b4b9ed3fd2a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8ZG9jdW1lbnQlMjBncmFwaHxlbnwwfHx8fDE3Njg0NjU5MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "document graph"
+    },
+    {
+      "id": "consultant-notes",
+      "description": "A person writing notes next to a screen with data.",
+      "imageUrl": "https://images.unsplash.com/photo-1579017308347-e53e0d2fc5e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwZXJzb24lMjB3cml0aW5nfGVufDB8fHx8MTc2ODQ0NDcwN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person writing"
+    }
+  ]
 }
