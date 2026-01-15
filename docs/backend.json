@@ -94,7 +94,9 @@
         "totalViews": { "type": "number" },
         "totalLikes": { "type": "number" },
         "totalComments": { "type": "number" },
-        "totalShares": { "type": "number" }
+        "totalShares": { "type": "number" },
+        "totalEngagements": { "type": "number", "description": "Sum of likes, comments, and shares." },
+        "profileViews": { "type": "number" }
       },
       "required": ["date", "followers"]
     },
@@ -108,7 +110,9 @@
         "totalViews": { "type": "number" },
         "totalLikes": { "type": "number" },
         "totalComments": { "type": "number" },
-        "totalShares": { "type": "number" }
+        "totalShares": { "type": "number" },
+        "totalEngagements": { "type": "number", "description": "Sum of likes, comments, and shares." },
+        "profileViews": { "type": "number" }
       },
       "required": ["month", "followers"]
     },
