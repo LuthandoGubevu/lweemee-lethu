@@ -5,6 +5,7 @@ import { Features } from "@/components/landing/features";
 import { KeySellingPoints } from "@/components/landing/ksp";
 import { UseCases } from "@/components/landing/use-cases";
 import { Pricing } from "@/components/landing/pricing";
+import { StrategistPricing } from "@/components/landing/strategist-pricing";
 import { AddOns } from "@/components/landing/add-ons";
 import { Faq } from "@/components/landing/faq";
 import { FinalCta } from "@/components/landing/final-cta";
@@ -23,6 +24,7 @@ export default function Home() {
         <SentimentDemo />
         <UseCases />
         <Pricing />
+        <StrategistPricing />
         <AddOns />
         <Faq />
         <FinalCta />
