@@ -1,3 +1,4 @@
+
 'use client';
 
 import {
@@ -13,7 +14,7 @@ import {
   SidebarMenuButton,
   SidebarGroup,
 } from '@/components/ui/sidebar';
-import { BotMessageSquare, Settings, LayoutDashboard, Users, PlusCircle, Link2, Send, BarChart3, FileText } from 'lucide-react';
+import { BotMessageSquare, Settings, LayoutDashboard, Users, PlusCircle, Link2, Send, BarChart3, FileText, PieChart } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -95,6 +96,14 @@ export default function DashboardLayout({
                 <Link href="/dashboard/measure">
                   <BarChart3 />
                   <span>Measure</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+             <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Audience">
+                <Link href="/dashboard/audience">
+                  <PieChart />
+                  <span>Audience</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
