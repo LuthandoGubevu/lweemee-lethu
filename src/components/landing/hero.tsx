@@ -4,7 +4,7 @@ import Image from 'next/image';
 
 export function Hero() {
   return (
-    <section className="relative w-full py-20 md:py-32 lg:py-40 text-foreground">
+    <section className="relative w-full py-20 md:py-32 lg:py-40 text-black">
        <Image
           src="/background.jpg"
           alt="Abstract background"
@@ -17,13 +17,13 @@ export function Hero() {
         <div className="absolute inset-0 bg-primary/30 z-10"></div>
       <div className="container relative z-20 mx-auto px-4 md:px-6">
         <div className="mx-auto max-w-4xl text-center">
-          <div className="mb-4 inline-block rounded-full bg-primary/10 px-3 py-1 text-sm font-medium text-primary">
+          <div className="mb-4 inline-block rounded-full bg-black/10 px-3 py-1 text-sm font-medium text-black">
             TikTok Insights for the South African Market
           </div>
           <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl font-headline">
             Stop Guessing. <span className="text-primary">Start Growing.</span>
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-foreground/80 md:text-xl">
+          <p className="mx-auto mt-6 max-w-2xl text-lg text-black/80 md:text-xl">
             Lweemee is the TikTok-first insights platform for South African brands, creators, and consultants who want to make smarter content decisions.
           </p>
           <div className="mt-8 flex flex-col justify-center gap-4 sm:flex-row">
