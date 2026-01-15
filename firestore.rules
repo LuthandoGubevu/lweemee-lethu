@@ -51,7 +51,7 @@ service cloud.firestore {
       match /members/{memberId} {
          // Allow any member to see the list of other members.
          allow read: if isWorkspaceMember(workspaceId);
-         // Admins/Consultants can write. Users can create their own member doc.
+         // Admins/Consultants can write. Users can create their own member doc during workspace creation.
          allow write: if isConsultant(workspaceId) || (request.auth.uid == memberId && request.method == 'create');
       }
 
