@@ -60,7 +60,7 @@ export default function NewWorkspacePage() {
     try {
         const batch = writeBatch(firestore);
 
-        // 1. Create the workspace document
+        // 1. Create the workspace document in /workspaces
         const workspaceRef = doc(collection(firestore, 'workspaces'));
         batch.set(workspaceRef, {
             name: data.name,
@@ -69,7 +69,7 @@ export default function NewWorkspacePage() {
             ownerId: user.uid,
         });
 
-        // 2. Add the user as an admin member
+        // 2. Create the member document in the members subcollection of the new workspace
         const memberRef = doc(firestore, `workspaces/${workspaceRef.id}/members/${user.uid}`);
         batch.set(memberRef, {
             userId: user.uid,
@@ -77,6 +77,7 @@ export default function NewWorkspacePage() {
             displayName: user.displayName,
             photoURL: user.photoURL,
             role: 'admin',
+            createdAt: serverTimestamp(),
         });
         
         // 3. Add workspace to user's workspace list for easy lookup
