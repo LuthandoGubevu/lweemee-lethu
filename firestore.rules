@@ -34,12 +34,14 @@ service cloud.firestore {
 
     // Rules for the 'users' collection.
     match /users/{userId} {
-      // Users can read their own profile.
-      // Users can create their own profile.
-      // Users can update their own profile.
-      allow read, create, update: if request.auth.uid == userId;
-      // Users cannot delete their own profile through the client.
-      allow delete: if false;
+      // Users can read/write their own profile.
+      allow read, write: if request.auth.uid == userId;
+
+      // Allow reads on subcollections for workspace members
+      match /workspaces/{workspaceId} {
+        allow read: if isWorkspaceMember(workspaceId);
+        allow write: if request.auth.uid == userId;
+      }
     }
 
     // Rules for the 'workspaces' collection and its subcollections.
@@ -54,13 +56,13 @@ service cloud.firestore {
       allow delete: if isAdmin(workspaceId);
 
       // Rules for the 'members' subcollection.
-      match /members/{userId} {
+      match /members/{memberId} {
         // Allow read for any member of the workspace.
         allow read: if isWorkspaceMember(workspaceId);
-        // Allow create (inviting) and update (changing roles) only for admins.
-        allow create, update: if isAdmin(workspaceId);
-        // Allow delete (removing members) only for admins.
-        allow delete: if isAdmin(workspaceId);
+        // Allow create (inviting) and update (changing roles) only for admins or consultants.
+        allow create, update: if isConsultant(workspaceId);
+        // Allow delete (removing members) only for admins or consultants.
+        allow delete: if isConsultant(workspaceId);
       }
       
       // Rules for 'connections', 'posts', 'recommendations', and 'reports' subcollections.

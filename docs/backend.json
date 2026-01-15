@@ -26,6 +26,16 @@
       },
       "required": ["uid", "email"]
     },
+    "UserWorkspace": {
+        "title": "User Workspace",
+        "description": "A reference to a workspace a user is a member of.",
+        "type": "object",
+        "properties": {
+            "name": { "type": "string" },
+            "role": { "type": "string", "enum": ["admin", "consultant", "client", "viewer"] }
+        },
+        "required": ["name", "role"]
+    },
     "Workspace": {
       "title": "Workspace",
       "description": "A workspace for a team to collaborate.",
@@ -236,6 +246,10 @@
     "/users/{userId}": {
       "schema": { "$ref": "#/entities/UserProfile" },
       "description": "Stores public information about a user."
+    },
+     "/users/{userId}/workspaces/{workspaceId}": {
+      "schema": { "$ref": "#/entities/UserWorkspace" },
+      "description": "A denormalized list of workspaces a user belongs to for easy querying."
     },
     "/workspaces/{workspaceId}": {
       "schema": { "$ref": "#/entities/Workspace" },

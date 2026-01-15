@@ -29,10 +29,8 @@ export default function RootLayout({
         />
       </head>
       <body className="font-body antialiased">
-        <FirebaseClientProvider>
-          {children}
-          <Toaster />
-        </FirebaseClientProvider>
+        <FirebaseClientProvider>{children}</FirebaseClientProvider>
+        <Toaster />
       </body>
     </html>
   );

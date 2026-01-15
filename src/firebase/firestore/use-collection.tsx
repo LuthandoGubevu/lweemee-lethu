@@ -27,7 +27,11 @@ export function useCollection<T>(path: string, options?: {
   const queryRef = useRef<Query | CollectionReference | null>(null);
 
   useEffect(() => {
-    if (!firestore) return;
+    if (!firestore || !path) {
+        setLoading(false);
+        return;
+    };
+    setLoading(true);
 
     try {
       let q: Query | CollectionReference = collection(firestore, path);
