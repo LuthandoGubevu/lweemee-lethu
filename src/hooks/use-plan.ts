@@ -15,7 +15,7 @@ export function usePlan(enabled: boolean = true) {
     const firestore = useFirestore();
     const [currentWorkspaceId] = useLocalStorage<string | null>('currentWorkspaceId', null);
 
-    const { data: billingInfo, loading: billingLoading } = useDoc<BillingInfo>(
+    const { data: billingInfo, loading: billingLoading, error: billingError } = useDoc<BillingInfo>(
         currentWorkspaceId && enabled ? `workspaces/${currentWorkspaceId}/billing/config` : ''
     );
 
@@ -27,8 +27,13 @@ export function usePlan(enabled: boolean = true) {
     const [reportsLoading, setReportsLoading] = useState(true);
 
     useEffect(() => {
+        if (!enabled) {
+            setReportsLoading(false);
+            return;
+        }
+
         const fetchReportCount = async () => {
-            if (!firestore || !currentWorkspaceId || !enabled) {
+            if (!firestore || !currentWorkspaceId ) {
                 setReportsLoading(false);
                 return;
             };
@@ -45,9 +50,14 @@ export function usePlan(enabled: boolean = true) {
             );
             
             setReportsLoading(true);
-            const snapshot = await getDocs(reportsQuery);
-            setReportsCount(snapshot.size);
-            setReportsLoading(false);
+            try {
+                const snapshot = await getDocs(reportsQuery);
+                setReportsCount(snapshot.size);
+            } catch (error) {
+                console.error("Failed to fetch report count:", error);
+            } finally {
+                setReportsLoading(false);
+            }
         }
         fetchReportCount();
 
@@ -69,11 +79,16 @@ export function usePlan(enabled: boolean = true) {
             loading: false,
         }
     }
+    
+    // If there's a billing error (like permission denied), but we are supposed to be enabled,
+    // we should still return loading state until the calling component handles the non-admin case.
+    const isLoading = billingLoading || connectionsLoading || reportsLoading;
+
 
     return {
         plan: plan?.name,
         limits: plan?.limits,
         usage,
-        loading: billingLoading || connectionsLoading || reportsLoading,
+        loading: isLoading,
     };
 }

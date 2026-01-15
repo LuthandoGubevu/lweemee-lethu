@@ -26,11 +26,11 @@ export default function BillingPage() {
     
     // Defer fetching plan data until we confirm the user is an admin.
     const currentUserMemberInfo = members.find(m => m.userId === user?.uid);
-    const isAdmin = currentUserMemberInfo?.role === 'admin';
+    const isAdmin = !!user && !!currentUserMemberInfo && currentUserMemberInfo.role === 'admin';
     
     const { plan, limits, usage, loading: planLoading } = usePlan(isAdmin);
 
-    if (membersLoading) {
+    if (membersLoading || (isAdmin && planLoading)) {
         return <div className="flex justify-center items-center h-full"><Loader className="h-8 w-8 animate-spin" /></div>
     }
 
@@ -42,10 +42,6 @@ export default function BillingPage() {
                 <p className="text-sm text-muted-foreground mt-2">Only workspace administrators can manage billing.</p>
             </div>
         )
-    }
-
-    if (planLoading) {
-        return <div className="flex justify-center items-center h-full"><Loader className="h-8 w-8 animate-spin" /></div>
     }
 
     const currentPlan = Object.values(PLANS).find(p => p.name === plan);
@@ -92,7 +88,7 @@ export default function BillingPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                  {Object.values(PLANS).map(p => (
-                     <Card key={p.id} className={p.id === plan ? "border-primary" : ""}>
+                     <Card key={p.id} className={p.name === plan ? "border-primary" : ""}>
                          <CardHeader>
                              <CardTitle>{p.name}</CardTitle>
                          </CardHeader>
@@ -108,8 +104,8 @@ export default function BillingPage() {
                              </ul>
                          </CardContent>
                          <CardFooter>
-                             <Button className="w-full" variant={p.id === plan ? "default" : "outline"} disabled>
-                                 {p.id === plan ? 'Current Plan' : 'Select Plan'}
+                             <Button className="w-full" variant={p.name === plan ? "default" : "outline"} disabled>
+                                 {p.name === plan ? 'Current Plan' : 'Select Plan'}
                             </Button>
                          </CardFooter>
                      </Card>
