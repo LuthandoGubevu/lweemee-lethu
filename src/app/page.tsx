@@ -11,6 +11,7 @@ import { Faq } from "@/components/landing/faq";
 import { FinalCta } from "@/components/landing/final-cta";
 import { SentimentDemo } from "@/components/landing/sentiment-demo";
 import { Card, CardContent } from "@/components/ui/card";
+import { Footer } from "@/components/landing/footer";
 
 export default function Home() {
   return (
