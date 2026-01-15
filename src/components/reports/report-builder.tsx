@@ -16,7 +16,10 @@ import { addDays } from 'date-fns';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { addDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { Loader } from 'lucide-react';
+import { AlertTriangle, Loader } from 'lucide-react';
+import { usePlan } from '@/hooks/use-plan';
+import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import Link from 'next/link';
 
 interface Connection {
   id: string;
@@ -44,6 +47,9 @@ export function ReportBuilder() {
     const { toast } = useToast();
     const [currentWorkspaceId] = useLocalStorage<string | null>('currentWorkspaceId', null);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const { plan, usage, limits, loading: planLoading } = usePlan();
+
+    const canGenerateReport = !limits || limits.reports === -1 || usage.reports < limits.reports;
 
     const { data: connections, loading: connectionsLoading } = useCollection<Connection>(
         currentWorkspaceId ? `workspaces/${currentWorkspaceId}/connections` : ''
@@ -120,6 +126,17 @@ export function ReportBuilder() {
              <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                     <CardContent className="space-y-6">
+                        {!canGenerateReport && (
+                            <Alert variant="destructive">
+                                <AlertTriangle className="h-4 w-4" />
+                                <AlertTitle>Report Limit Reached</AlertTitle>
+                                <AlertDescription>
+                                    You have reached the monthly report limit for the {plan} plan.
+                                    Please upgrade your plan to generate more.
+                                    <Button variant="link" asChild><Link href="/dashboard/billing">Upgrade Plan</Link></Button>
+                                </AlertDescription>
+                            </Alert>
+                        )}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <FormField
                                 control={form.control}
@@ -127,7 +144,7 @@ export function ReportBuilder() {
                                 render={({ field }) => (
                                     <FormItem>
                                     <FormLabel>TikTok Handle</FormLabel>
-                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={connectionsLoading}>
+                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={connectionsLoading || !canGenerateReport}>
                                         <FormControl>
                                         <SelectTrigger><SelectValue placeholder="Select a handle" /></SelectTrigger>
                                         </FormControl>
@@ -163,7 +180,7 @@ export function ReportBuilder() {
                                             <FormLabel>Overview KPIs</FormLabel>
                                         </div>
                                         <FormControl>
-                                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                            <Switch checked={field.value} onCheckedChange={field.onChange} disabled={!canGenerateReport} />
                                         </FormControl>
                                         </FormItem>
                                     )}
@@ -177,7 +194,7 @@ export function ReportBuilder() {
                                             <FormLabel>Content Performance</FormLabel>
                                         </div>
                                         <FormControl>
-                                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                            <Switch checked={field.value} onCheckedChange={field.onChange} disabled={!canGenerateReport} />
                                         </FormControl>
                                         </FormItem>
                                     )}
@@ -191,7 +208,7 @@ export function ReportBuilder() {
                                             <FormLabel>Audience Insights</FormLabel>
                                         </div>
                                         <FormControl>
-                                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                            <Switch checked={field.value} onCheckedChange={field.onChange} disabled={!canGenerateReport} />
                                         </FormControl>
                                         </FormItem>
                                     )}
@@ -205,7 +222,7 @@ export function ReportBuilder() {
                                             <FormLabel>Recommendations</FormLabel>
                                         </div>
                                         <FormControl>
-                                            <Switch checked={field.value} onCheckedChange={field.onChange} />
+                                            <Switch checked={field.value} onCheckedChange={field.onChange} disabled={!canGenerateReport} />
                                         </FormControl>
                                         </FormItem>
                                     )}
@@ -215,7 +232,7 @@ export function ReportBuilder() {
 
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit" disabled={isSubmitting}>
+                        <Button type="submit" disabled={isSubmitting || !canGenerateReport}>
                             {isSubmitting && <Loader className="mr-2 h-4 w-4 animate-spin"/>}
                             Generate Report
                         </Button>

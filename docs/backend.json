@@ -180,10 +180,17 @@
       "description": "Billing information for a workspace.",
       "type": "object",
       "properties": {
-        "plan": { "type": "string", "enum": ["insights-access", "strategy-plus", "partnership"] },
+        "plan": { "type": "string", "enum": ["Starter", "Growth", "Partnership"] },
         "status": { "type": "string", "enum": ["active", "inactive", "trialing"] },
         "stripeCustomerId": { "type": "string" },
-        "subscriptionId": { "type": "string" }
+        "subscriptionId": { "type": "string" },
+        "usage": {
+          "type": "object",
+          "properties": {
+            "connections": { "type": "number", "description": "Number of active connections" },
+            "reports": { "type": "number", "description": "Number of reports generated this period" }
+          }
+        }
       },
       "required": ["plan", "status"]
     },

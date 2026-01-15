@@ -14,7 +14,7 @@ import {
   SidebarMenuButton,
   SidebarGroup,
 } from '@/components/ui/sidebar';
-import { BotMessageSquare, Settings, LayoutDashboard, Users, PlusCircle, Link2, Send, BarChart3, FileText, PieChart, Lightbulb, FileDown } from 'lucide-react';
+import { BotMessageSquare, Settings, LayoutDashboard, Users, PlusCircle, Link2, Send, BarChart3, FileText, PieChart, Lightbulb, FileDown, CreditCard } from 'lucide-react';
 import Link from 'next/link';
 import { useUser } from '@/firebase';
 import { useRouter } from 'next/navigation';
@@ -152,6 +152,14 @@ export default function DashboardLayout({
                 <Link href="/dashboard/members">
                   <Users />
                   <span>Members</span>
+                </Link>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            <SidebarMenuItem>
+              <SidebarMenuButton asChild tooltip="Billing">
+                <Link href="/dashboard/billing">
+                  <CreditCard />
+                  <span>Billing</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>

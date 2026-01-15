@@ -23,7 +23,7 @@ const formSchema = z.object({
   handle: z.string().min(2, 'Handle must be at least 2 characters.').refine(val => !val.startsWith('@'), { message: "Handle should not start with '@'" }),
 });
 
-export function AddHandleForm() {
+export function AddHandleForm({ disabled }: { disabled?: boolean }) {
   const { toast } = useToast();
   const firestore = useFirestore();
   const [currentWorkspaceId] = useLocalStorage('currentWorkspaceId', null);
@@ -80,13 +80,13 @@ export function AddHandleForm() {
             <FormItem>
               <FormLabel>TikTok Handle</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., mybrand" {...field} />
+                <Input placeholder="e.g., mybrand" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={form.formState.isSubmitting}>
+        <Button type="submit" disabled={form.formState.isSubmitting || disabled}>
           {form.formState.isSubmitting ? 'Adding...' : 'Add Handle'}
         </Button>
       </form>
