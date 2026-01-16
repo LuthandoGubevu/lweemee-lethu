@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useForm } from 'react-hook-form';
@@ -15,17 +14,22 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { useFirestore } from '@/firebase';
+import { useFirestore, useUser } from '@/firebase';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
 
 const formSchema = z.object({
-  handle: z.string().min(2, 'Handle must be at least 2 characters.').refine(val => !val.startsWith('@'), { message: "Handle should not start with '@'" }),
+  handle: z.string()
+    .trim()
+    .min(2, 'Handle must be at least 2 characters.')
+    .refine(val => !val.startsWith('@'), { message: "Handle should not start with '@'" })
+    .transform(val => val.toLowerCase()),
 });
 
-export function AddHandleForm({ disabled }: { disabled?: boolean }) {
+export function AddHandleForm({ disabled, platform = 'tiktok' }: { disabled?: boolean, platform?: 'tiktok' | 'instagram' }) {
   const { toast } = useToast();
   const firestore = useFirestore();
+  const { user } = useUser();
   const [currentWorkspaceId] = useLocalStorage('currentWorkspaceId', null);
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -36,10 +40,10 @@ export function AddHandleForm({ disabled }: { disabled?: boolean }) {
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!firestore || !currentWorkspaceId) {
+    if (!firestore || !currentWorkspaceId || !user) {
       toast({
         title: 'Error',
-        description: 'Could not add handle. Workspace not found.',
+        description: 'Could not add handle. Workspace or user not found.',
         variant: 'destructive',
       });
       return;
@@ -53,13 +57,20 @@ export function AddHandleForm({ disabled }: { disabled?: boolean }) {
       await addDoc(connectionsRef, {
         handle: values.handle,
         connectionType: 'handle',
-        platform: 'tiktok',
+        platform: platform,
+        status: 'pending',
+        createdBy: user.uid,
         createdAt: serverTimestamp(),
       });
 
+      const platformName = platform === 'tiktok' ? 'TikTok' : 'Instagram';
+      const description = platform === 'instagram'
+        ? `@${values.handle} has been added and is pending sync.`
+        : `@${values.handle} is now being tracked.`;
+      
       toast({
-        title: 'Handle Added',
-        description: `@${values.handle} is now being tracked.`,
+        title: `${platformName} Account Added`,
+        description: description,
       });
       form.reset();
     } catch (error: any) {
@@ -71,6 +82,9 @@ export function AddHandleForm({ disabled }: { disabled?: boolean }) {
     }
   };
 
+  const platformName = platform === 'tiktok' ? 'TikTok' : 'Instagram';
+  const handleName = platform === 'tiktok' ? 'Handle' : 'Username';
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -79,7 +93,7 @@ export function AddHandleForm({ disabled }: { disabled?: boolean }) {
           name="handle"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>TikTok Handle</FormLabel>
+              <FormLabel>{platformName} {handleName}</FormLabel>
               <FormControl>
                 <Input placeholder="e.g., lweemeeofficial" {...field} disabled={disabled} />
               </FormControl>
@@ -88,7 +102,7 @@ export function AddHandleForm({ disabled }: { disabled?: boolean }) {
           )}
         />
         <Button type="submit" disabled={form.formState.isSubmitting || disabled}>
-          {form.formState.isSubmitting ? 'Adding...' : 'Add Handle'}
+          {form.formState.isSubmitting ? 'Adding...' : `Add ${handleName}`}
         </Button>
       </form>
     </Form>

@@ -39,6 +39,7 @@ interface Connection {
     toDate: () => Date;
   };
   platform?: 'tiktok' | 'instagram';
+  status?: 'pending' | 'active' | 'error';
 }
 
 interface Member {
@@ -111,26 +112,29 @@ export default function ConnectionsPage() {
     }
 
     const renderEmptyState = () => {
+        let title = "No accounts connected yet.";
+        let description = "Add a handle or username to start tracking.";
+
         if (filter === 'instagram') {
-            return (
-                <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center">
-                        <p className="font-medium">No Instagram accounts connected yet.</p>
-                        <p className="text-muted-foreground">Instagram connections are coming soon. For now, you can import data via CSV.</p>
-                    </TableCell>
-                </TableRow>
-            )
+            title = "No Instagram accounts connected yet.";
+            description = "Add an Instagram username to start tracking.";
+        } else if (filter === 'tiktok') {
+            title = "No TikTok accounts connected yet.";
+            description = "Add a TikTok handle to start tracking.";
         }
-        const platformText = filter === 'tiktok' ? 'TikTok' : '';
+
         return (
             <TableRow>
                 <TableCell colSpan={5} className="h-24 text-center">
-                    <p className="font-medium">No {platformText} accounts connected yet.</p>
-                    <p className="text-muted-foreground">Add a TikTok handle or import data to start tracking.</p>
+                    <p className="font-medium">{title}</p>
+                    <p className="text-muted-foreground">{description}</p>
                 </TableCell>
             </TableRow>
-        )
+        );
     }
+    
+    const platformForForm = filter === 'instagram' ? 'instagram' : 'tiktok';
+    const isInstagramForm = platformForForm === 'instagram';
 
     return (
         <div className="space-y-6">
@@ -158,22 +162,29 @@ export default function ConnectionsPage() {
 
             <Tabs defaultValue="add_handle">
                 <TabsList>
-                <TabsTrigger value="add_handle">Add TikTok Handle</TabsTrigger>
+                <TabsTrigger value="add_handle">Add by Handle/Username</TabsTrigger>
                 <TabsTrigger value="manual_import">Manual Import</TabsTrigger>
                 <TabsTrigger value="oauth" disabled>
-                    Connect with TikTok (OAuth)
+                    Connect with Platform (OAuth)
                 </TabsTrigger>
                 </TabsList>
                 <TabsContent value="add_handle">
                 <Card>
                     <CardHeader>
-                    <CardTitle>Connect TikTok via Handle</CardTitle>
+                    <CardTitle>
+                        {isInstagramForm ? 'Connect Instagram via Username' : 'Connect TikTok via Handle'}
+                    </CardTitle>
                     <CardDescription>
-                        Enter a public TikTok username (without @).
+                        {isInstagramForm
+                            ? 'Enter the public Instagram username (without @).'
+                            : 'Enter a public TikTok username (without @).'}
                     </CardDescription>
                     </CardHeader>
                     <CardContent>
-                    <AddHandleForm disabled={!canAddConnection}/>
+                    <AddHandleForm
+                        disabled={!canAddConnection}
+                        platform={platformForForm}
+                    />
                     </CardContent>
                 </Card>
                 </TabsContent>
