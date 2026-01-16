@@ -78,7 +78,9 @@
         "publishedAt": { "type": "string", "format": "date-time", "description": "The date and time the post was published." },
         "createdAt": { "type": "string", "format": "date-time", "description": "The date and time the post was created." },
         "createdBy": { "type": "string", "description": "User ID of the post creator." },
-        "tiktokPostUrl": { "type": "string", "format": "uri", "description": "The URL of the post on TikTok." }
+        "tiktokPostUrl": { "type": "string", "format": "uri", "description": "The URL of the post on TikTok." },
+        "platform": { "type": "string", "enum": ["tiktok", "instagram"], "description": "The social media platform of the post."},
+        "connectionId": { "type": "string", "description": "The ID of the connection this post belongs to."}
       },
       "required": ["content", "status", "createdAt", "createdBy"]
     },
@@ -93,7 +95,8 @@
         "shares": { "type": "number" },
         "watchTime": { "type": "number", "description": "Total watch time in seconds." },
         "videoLength": { "type": "number", "description": "Video length in seconds." },
-        "lastUpdated": { "type": "string", "format": "date-time" }
+        "lastUpdated": { "type": "string", "format": "date-time" },
+        "platform": { "type": "string", "enum": ["tiktok", "instagram"], "description": "The social media platform of the post."}
       },
       "required": ["views", "likes", "comments", "shares", "lastUpdated"]
     },
@@ -109,7 +112,8 @@
         "totalComments": { "type": "number" },
         "totalShares": { "type": "number" },
         "totalEngagements": { "type": "number", "description": "Sum of likes, comments, and shares." },
-        "profileViews": { "type": "number" }
+        "profileViews": { "type": "number" },
+        "platform": { "type": "string", "enum": ["tiktok", "instagram"], "description": "The social media platform."}
       },
       "required": ["date", "followers"]
     },
@@ -153,7 +157,8 @@
             "45+": { "type": "number" }
           }
         },
-        "countries": { "type": "object", "description": "Key-value pairs of country codes and percentages." }
+        "countries": { "type": "object", "description": "Key-value pairs of country codes and percentages." },
+        "platform": { "type": "string", "enum": ["tiktok", "instagram"], "description": "The social media platform."}
       },
       "required": ["date"]
     },

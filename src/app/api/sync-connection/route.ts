@@ -1,7 +1,8 @@
+
 import { NextResponse } from 'next/server';
 import { db, auth as adminAuth } from '@/lib/firebase-admin';
 import { Timestamp } from 'firebase-admin/firestore';
-import { format } from 'date-fns';
+import { syncConnection } from '@/lib/sync/sync-service';
 
 export async function POST(request: Request) {
     const { workspaceId, connectionId } = await request.json();
@@ -40,64 +41,13 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: 'Forbidden: User does not have permission to sync connections' }, { status: 403 });
         }
         
-        // 3. Update the connection document (and write stub metrics)
-        const connectionRef = db.doc(`workspaces/${workspaceId}/connections/${connectionId}`);
-        const connectionSnap = await connectionRef.get();
-        if (!connectionSnap.exists) {
-            return NextResponse.json({ error: 'Connection not found' }, { status: 404 });
-        }
-
-        const batch = db.batch();
-
-        // Update connection
-        batch.update(connectionRef, {
-            status: 'active',
-            lastSyncAt: Timestamp.now(),
-            updatedAt: Timestamp.now(),
-            lastError: null
-        });
-
-        // Write stub daily metric
-        const today = format(new Date(), 'yyyy-MM-dd');
-        const dailyMetricRef = db.doc(`workspaces/${workspaceId}/connections/${connectionId}/dailyMetrics/${today}`);
-        batch.set(dailyMetricRef, {
-            date: today,
-            followers: Math.floor(Math.random() * 10000),
-            totalViews: Math.floor(Math.random() * 500000),
-            totalEngagements: Math.floor(Math.random() * 25000),
-            profileViews: Math.floor(Math.random() * 5000),
-        }, { merge: true });
-
-        // Write stub audience snapshot
-        const audienceSnapshotRef = db.doc(`workspaces/${workspaceId}/connections/${connectionId}/audienceSnapshots/${today}`);
-        batch.set(audienceSnapshotRef, {
-            date: today,
-            gender: {
-                male: Math.random() * 100,
-                female: Math.random() * 100,
-                other: Math.random() * 5,
-            },
-            age: {
-                "13-17": Math.random() * 15,
-                "18-24": Math.random() * 35,
-                "25-34": Math.random() * 30,
-                "35-44": Math.random() * 15,
-                "45+": Math.random() * 5,
-            },
-            countries: {
-                ZA: Math.random() * 80 + 10,
-                NG: Math.random() * 10,
-                GB: Math.random() * 5,
-            }
-        }, { merge: true });
-
-
-        await batch.commit();
+        // 3. Call the new sync service
+        await syncConnection(workspaceId, connectionId);
 
         return NextResponse.json({ message: 'Sync successful' });
 
     } catch (error: any) {
-        console.error('Sync failed:', error);
+        console.error(`[API] Sync failed for connection ${connectionId} in workspace ${workspaceId}:`, error);
         
         // Update connection to show error status
         if (workspaceId && connectionId) {
@@ -106,11 +56,11 @@ export async function POST(request: Request) {
                 status: 'error',
                 lastError: {
                     message: error.message || 'An unknown error occurred during sync.',
-                    code: error.code || 'UNKNOWN',
+                    code: error.code || 'SYNC_FAILED',
                     at: Timestamp.now()
                 },
                 updatedAt: Timestamp.now()
-            }).catch(console.error);
+            }).catch(console.error); // Best effort, don't let this fail the main error response
         }
 
         if (error.code === 'auth/id-token-expired') {
