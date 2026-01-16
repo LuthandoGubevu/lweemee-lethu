@@ -9,6 +9,7 @@ import { PLANS } from "@/lib/plans";
 import { Progress } from "@/components/ui/progress";
 import { useUser, useCollection } from '@/firebase';
 import { useLocalStorage } from '@/hooks/use-local-storage';
+import { FOUNDER_UIDS } from "@/lib/founders";
 
 interface Member {
     id: string;
@@ -24,9 +25,9 @@ export default function BillingPage() {
         currentWorkspaceId ? `workspaces/${currentWorkspaceId}/members` : ''
     );
     
-    // Defer fetching plan data until we confirm the user is an admin.
+    const isFounder = user && FOUNDER_UIDS.includes(user.uid);
     const currentUserMemberInfo = members.find(m => m.userId === user?.uid);
-    const isAdmin = !!user && !!currentUserMemberInfo && currentUserMemberInfo.role === 'admin';
+    const isAdmin = (!!user && !!currentUserMemberInfo && currentUserMemberInfo.role === 'admin') || isFounder;
     
     const { plan, limits, usage, loading: planLoading } = usePlan(isAdmin);
 
@@ -44,7 +45,7 @@ export default function BillingPage() {
         )
     }
 
-    const currentPlan = Object.values(PLANS).find(p => p.name === plan);
+    const currentPlanDetails = Object.values(PLANS).find(p => p.name === plan);
 
     return (
         <div className="space-y-8">
@@ -57,7 +58,9 @@ export default function BillingPage() {
                 <CardHeader>
                     <CardTitle>Current Plan: {plan}</CardTitle>
                     <CardDescription>
-                        {currentPlan?.id === 'Partnership' ? "You are on the top-tier plan with maximum benefits." : "You can upgrade your plan to unlock more features and increase your limits."}
+                        {plan === 'Founder' ? "You have unlimited founder access to all features."
+                        : currentPlanDetails?.id === 'Partnership' ? "You are on the top-tier plan with maximum benefits." 
+                        : "You can upgrade your plan to unlock more features and increase your limits."}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -67,9 +70,9 @@ export default function BillingPage() {
                             <div>
                                 <div className="flex justify-between mb-1 text-sm">
                                     <span className="font-medium">Connections</span>
-                                    <span className="text-muted-foreground">{usage.connections} / {limits?.connections}</span>
+                                    <span className="text-muted-foreground">{usage.connections} / {limits?.connections === -1 ? 'Unlimited' : limits?.connections}</span>
                                 </div>
-                                <Progress value={limits ? (usage.connections / limits.connections) * 100 : 0} />
+                                {limits?.connections !== -1 && <Progress value={limits ? (usage.connections / limits.connections) * 100 : 0} />}
                             </div>
                              <div>
                                 <div className="flex justify-between mb-1 text-sm">
@@ -82,13 +85,13 @@ export default function BillingPage() {
                     </div>
                 </CardContent>
                 <CardFooter>
-                     <Button disabled>Upgrade Plan (Coming Soon)</Button>
+                     <Button disabled={plan === 'Founder'}>Upgrade Plan (Coming Soon)</Button>
                 </CardFooter>
             </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                  {Object.values(PLANS).map(p => (
-                     <Card key={p.id} className={p.name === plan ? "border-primary" : ""}>
+                     <Card key={p.id} className={p.name === plan && plan !== 'Founder' ? "border-primary" : ""}>
                          <CardHeader>
                              <CardTitle>{p.name}</CardTitle>
                          </CardHeader>
@@ -104,7 +107,7 @@ export default function BillingPage() {
                              </ul>
                          </CardContent>
                          <CardFooter>
-                             <Button className="w-full" variant={p.name === plan ? "default" : "outline"} disabled>
+                             <Button className="w-full" variant={p.name === plan ? "default" : "outline"} disabled={plan === 'Founder' || p.name === plan}>
                                  {p.name === plan ? 'Current Plan' : 'Select Plan'}
                             </Button>
                          </CardFooter>

@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useMemo, useRef } from 'react';
@@ -62,7 +63,7 @@ export default function ConnectionsPage() {
     const handleFormRef = useRef<HTMLDivElement>(null);
     const importFormRef = useRef<HTMLDivElement>(null);
 
-    const canAddConnection = !limits || usage.connections < limits.connections;
+    const canAddConnection = !limits || limits.connections === -1 || usage.connections < limits.connections;
 
     const { user } = useUser();
     const firestore = useFirestore();
@@ -169,7 +170,7 @@ export default function ConnectionsPage() {
                     {!planLoading && plan && limits && (
                         <div className="text-sm text-muted-foreground text-right">
                             <p>{plan} Plan</p>
-                            <p>{usage.connections} / {limits.connections} Connections</p>
+                            <p>{usage.connections} / {limits.connections === -1 ? 'Unlimited' : limits.connections} Connections</p>
                         </div>
                     )}
                      <Button onClick={() => setIsAddModalOpen(true)}>

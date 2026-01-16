@@ -2,9 +2,10 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from './use-local-storage';
-import { useDoc, useCollection, useFirestore } from '@/firebase';
+import { useDoc, useCollection, useFirestore, useUser } from '@/firebase';
 import { PLANS, type Plan, type PlanId } from '@/lib/plans';
 import { collection, getDocs, query, where } from 'firebase/firestore';
+import { FOUNDER_UIDS } from '@/lib/founders';
 
 interface BillingInfo {
     plan: PlanId;
@@ -12,6 +13,7 @@ interface BillingInfo {
 }
 
 export function usePlan(enabled: boolean = true) {
+    const { user } = useUser();
     const firestore = useFirestore();
     const [currentWorkspaceId] = useLocalStorage<string | null>('currentWorkspaceId', null);
 
@@ -25,9 +27,11 @@ export function usePlan(enabled: boolean = true) {
     
     const [reportsCount, setReportsCount] = useState(0);
     const [reportsLoading, setReportsLoading] = useState(true);
+    
+    const isFounder = enabled && user && FOUNDER_UIDS.includes(user.uid);
 
     useEffect(() => {
-        if (!enabled) {
+        if (!enabled || isFounder) {
             setReportsLoading(false);
             return;
         }
@@ -61,14 +65,24 @@ export function usePlan(enabled: boolean = true) {
         }
         fetchReportCount();
 
-    }, [currentWorkspaceId, firestore, enabled]);
-
-    const planId = billingInfo?.plan || 'Starter';
-    const plan = PLANS[planId];
+    }, [currentWorkspaceId, firestore, enabled, isFounder]);
 
     const usage = {
         connections: connections.length,
         reports: reportsCount,
+    }
+
+    if (isFounder) {
+        return {
+            plan: 'Founder',
+            limits: {
+                workspaces: -1,
+                connections: -1,
+                reports: -1,
+            },
+            usage,
+            loading: connectionsLoading, // Only need to wait for connections to calculate usage
+        }
     }
 
     if (!enabled) {
@@ -83,6 +97,9 @@ export function usePlan(enabled: boolean = true) {
     // If there's a billing error (like permission denied), but we are supposed to be enabled,
     // we should still return loading state until the calling component handles the non-admin case.
     const isLoading = billingLoading || connectionsLoading || reportsLoading;
+
+    const planId = billingInfo?.plan || 'Starter';
+    const plan = PLANS[planId];
 
 
     return {

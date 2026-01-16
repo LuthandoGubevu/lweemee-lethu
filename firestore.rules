@@ -3,6 +3,10 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isFounder() {
+      return request.auth.uid in ['3pW8d84ApOazG7hrw4fvNyBJTyD3', 'oq01EJM5kAdh1p5SsTMbClj7Fs03'];
+    }
+
     // Helper functions to check user roles and permissions.
     function isSignedIn() {
       return request.auth != null;
@@ -13,23 +17,23 @@ service cloud.firestore {
     }
 
     function isWorkspaceMember(workspaceId) {
-      return exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid));
+      return isFounder() || exists(/databases/$(database)/documents/workspaces/$(workspaceId)/members/$(request.auth.uid));
     }
 
     function isAdmin(workspaceId) {
-      return isSignedIn() && getRole(workspaceId) == 'admin';
+      return isFounder() || (isSignedIn() && getRole(workspaceId) == 'admin');
     }
 
     function isConsultant(workspaceId) {
-      return isSignedIn() && getRole(workspaceId) in ['admin', 'consultant'];
+      return isFounder() || (isSignedIn() && getRole(workspaceId) in ['admin', 'consultant']);
     }
     
     function isClient(workspaceId) {
-        return isSignedIn() && getRole(workspaceId) in ['admin', 'consultant', 'client'];
+        return isFounder() || (isSignedIn() && getRole(workspaceId) in ['admin', 'consultant', 'client']);
     }
 
     function isViewer(workspaceId) {
-      return isSignedIn() && getRole(workspaceId) in ['admin', 'consultant', 'client', 'viewer'];
+      return isFounder() || (isSignedIn() && getRole(workspaceId) in ['admin', 'consultant', 'client', 'viewer']);
     }
 
     // Rules for the 'users' collection.
@@ -47,11 +51,10 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow update, delete: if isAdmin(workspaceId);
       
-      // Admins/Consultants can write. Users can create their own member doc during workspace creation.
-      // Any member of the workspace can view the member list.
       match /members/{memberId} {
-         allow write: if isConsultant(workspaceId) || (request.auth.uid == memberId && request.method == 'create');
+         allow create: if isConsultant(workspaceId) || (request.auth.uid == memberId);
          allow read: if isWorkspaceMember(workspaceId);
+         allow update, delete: if isConsultant(workspaceId);
       }
       
       // Rules for data subcollections.
