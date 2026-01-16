@@ -14,7 +14,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AddHandleForm } from '@/components/connections/add-handle-form';
 import { ManualImport } from '@/components/connections/manual-import';
-import { AlertTriangle, Info, MoreHorizontal, Trash2, Clapperboard, Camera, PlusCircle } from 'lucide-react';
+import { AlertTriangle, Info, MoreHorizontal, Trash2, Clapperboard, Camera, PlusCircle, Eye } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -27,21 +27,11 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { AddConnectionModal } from './AddConnectionModal';
-
-interface Connection {
-  id: string;
-  handle: string;
-  connectionType: 'handle' | 'oauth' | 'manual';
-  createdAt: {
-    toDate: () => Date;
-  };
-  platform?: 'tiktok' | 'instagram';
-  status?: 'pending' | 'active' | 'error';
-}
+import { ConnectionDetailsDrawer, type Connection } from './ConnectionDetailsDrawer';
 
 interface Member {
     id: string;
@@ -65,6 +55,9 @@ export default function ConnectionsPage() {
     const { plan, usage, limits, loading: planLoading } = usePlan();
     const [filter, setFilter] = useState<'all' | 'tiktok' | 'instagram'>('all');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    const [selectedConnection, setSelectedConnection] = useState<Connection | null>(null);
+    const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
     const handleFormRef = useRef<HTMLDivElement>(null);
     const importFormRef = useRef<HTMLDivElement>(null);
@@ -115,6 +108,12 @@ export default function ConnectionsPage() {
         toast({ title: 'Error removing connection', description: e.message, variant: 'destructive'});
       }
     }
+    
+    const handleViewDetails = (connection: Connection) => {
+        setSelectedConnection(connection);
+        setIsDrawerOpen(true);
+    };
+
 
     if (!currentWorkspaceId) {
       return (
@@ -139,7 +138,7 @@ export default function ConnectionsPage() {
 
         return (
             <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
+                <TableCell colSpan={6} className="h-24 text-center">
                     <p className="font-medium">{title}</p>
                     <p className="text-muted-foreground">{description}</p>
                 </TableCell>
@@ -149,6 +148,14 @@ export default function ConnectionsPage() {
     
     const platformForForm = filter === 'instagram' ? 'instagram' : 'tiktok';
     const isInstagramForm = platformForForm === 'instagram';
+    
+    const getStatusVariant = (status?: string) => {
+        switch (status) {
+            case 'active': return 'default';
+            case 'error': return 'destructive';
+            default: return 'secondary';
+        }
+    }
 
     return (
         <div className="space-y-6">
@@ -176,6 +183,12 @@ export default function ConnectionsPage() {
                 isOpen={isAddModalOpen}
                 onOpenChange={setIsAddModalOpen}
                 onComplete={handleMethodSelect}
+            />
+
+            <ConnectionDetailsDrawer 
+                connection={selectedConnection}
+                isOpen={isDrawerOpen}
+                onOpenChange={setIsDrawerOpen}
             />
 
             {!canAddConnection && (
@@ -235,6 +248,7 @@ export default function ConnectionsPage() {
                                 <TableHead>Platform</TableHead>
                                 <TableHead>Handle</TableHead>
                                 <TableHead>Connection Type</TableHead>
+                                <TableHead>Status</TableHead>
                                 <TableHead>Connected On</TableHead>
                                 <TableHead className="text-right">Actions</TableHead>
                             </TableRow>
@@ -242,7 +256,7 @@ export default function ConnectionsPage() {
                         <TableBody>
                             {connectionsLoading ? (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="h-24 text-center">
+                                    <TableCell colSpan={6} className="h-24 text-center">
                                         Loading connections...
                                     </TableCell>
                                 </TableRow>
@@ -262,6 +276,9 @@ export default function ConnectionsPage() {
                                                 <Badge variant="secondary" className="capitalize">{conn.connectionType.replace('_', ' ')}</Badge>
                                             </TableCell>
                                             <TableCell>
+                                                <Badge variant={getStatusVariant(conn.status)} className="capitalize">{conn.status || 'pending'}</Badge>
+                                            </TableCell>
+                                            <TableCell>
                                                 {conn.createdAt?.toDate().toLocaleDateString()}
                                             </TableCell>
                                             <TableCell className="text-right">
@@ -273,6 +290,11 @@ export default function ConnectionsPage() {
                                                             </Button>
                                                         </DropdownMenuTrigger>
                                                         <DropdownMenuContent>
+                                                            <DropdownMenuItem onClick={() => handleViewDetails(conn)}>
+                                                                <Eye className="mr-2 h-4 w-4" />
+                                                                View Details
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
                                                             <DropdownMenuItem
                                                                 className="text-destructive"
                                                                 onClick={() => handleDelete(conn.id)}

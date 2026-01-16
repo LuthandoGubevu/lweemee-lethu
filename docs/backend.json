@@ -49,10 +49,22 @@
       "type": "object",
       "properties": {
         "handle": { "type": "string", "description": "The TikTok handle." },
+        "platform": { "type": "string", "enum": ["tiktok", "instagram"], "description": "The social media platform."},
         "connectionType": { "type": "string", "enum": ["oauth", "handle", "manual"], "description": "The type of connection." },
-        "createdAt": { "type": "string", "format": "date-time", "description": "The date and time the connection was created." }
+        "status": { "type": "string", "enum": ["pending", "active", "error"], "description": "The sync status of the connection." },
+        "createdAt": { "type": "string", "format": "date-time", "description": "The date and time the connection was created." },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "The date and time the connection was last updated." },
+        "lastSyncAt": { "type": "string", "format": "date-time", "description": "The date and time of the last successful sync." },
+        "lastError": {
+            "type": "object",
+            "properties": {
+                "message": { "type": "string" },
+                "code": { "type": "string" },
+                "at": { "type": "string", "format": "date-time" }
+            }
+        }
       },
-      "required": ["handle", "connectionType", "createdAt"]
+      "required": ["handle", "connectionType", "createdAt", "platform", "status"]
     },
     "Post": {
       "title": "Post",
