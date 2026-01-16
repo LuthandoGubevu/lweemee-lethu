@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { usePlan } from '@/hooks/use-plan';
 import { useFirestore, useCollection, useUser } from '@/firebase';
@@ -11,10 +11,10 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AddHandleForm } from '@/components/connections/add-handle-form';
 import { ManualImport } from '@/components/connections/manual-import';
-import { AlertTriangle, Info, MoreHorizontal, Trash2, Clapperboard, Camera } from 'lucide-react';
+import { AlertTriangle, Info, MoreHorizontal, Trash2, Clapperboard, Camera, PlusCircle } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
@@ -30,6 +30,7 @@ import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { AddConnectionModal } from './AddConnectionModal';
 
 interface Connection {
   id: string;
@@ -63,6 +64,10 @@ export default function ConnectionsPage() {
     const [currentWorkspaceId] = useLocalStorage<string | null>('currentWorkspaceId', null);
     const { plan, usage, limits, loading: planLoading } = usePlan();
     const [filter, setFilter] = useState<'all' | 'tiktok' | 'instagram'>('all');
+    const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+    const handleFormRef = useRef<HTMLDivElement>(null);
+    const importFormRef = useRef<HTMLDivElement>(null);
 
     const canAddConnection = !limits || usage.connections < limits.connections;
 
@@ -90,6 +95,15 @@ export default function ConnectionsPage() {
             return platformKey === filter;
         });
     }, [connections, filter]);
+    
+    const handleMethodSelect = (platform: 'tiktok' | 'instagram', method: 'handle' | 'import') => {
+       if (method === 'handle') {
+           setFilter(platform);
+           setTimeout(() => handleFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+       } else if (method === 'import') {
+           importFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+       }
+    };
 
     const handleDelete = async (connectionId: string) => {
       if (!firestore || !currentWorkspaceId) return;
@@ -139,14 +153,30 @@ export default function ConnectionsPage() {
     return (
         <div className="space-y-6">
             <div className="flex justify-between items-start">
-                <h1 className="text-2xl font-bold">Connections</h1>
-                {!planLoading && plan && limits && (
-                    <div className="text-sm text-muted-foreground">
-                        <p>{plan} Plan</p>
-                        <p>{usage.connections} / {limits.connections} Connections</p>
-                    </div>
-                )}
+                <div>
+                  <h1 className="text-2xl font-bold">Connections</h1>
+                  <p className="text-muted-foreground">Manage your connected TikTok and Instagram accounts.</p>
+                </div>
+
+                <div className="flex items-center gap-4">
+                    {!planLoading && plan && limits && (
+                        <div className="text-sm text-muted-foreground text-right">
+                            <p>{plan} Plan</p>
+                            <p>{usage.connections} / {limits.connections} Connections</p>
+                        </div>
+                    )}
+                     <Button onClick={() => setIsAddModalOpen(true)}>
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add Connection
+                    </Button>
+                </div>
             </div>
+
+            <AddConnectionModal 
+                isOpen={isAddModalOpen}
+                onOpenChange={setIsAddModalOpen}
+                onComplete={handleMethodSelect}
+            />
 
             {!canAddConnection && (
                 <Alert variant="destructive">
@@ -160,15 +190,7 @@ export default function ConnectionsPage() {
                 </Alert>
             )}
 
-            <Tabs defaultValue="add_handle">
-                <TabsList>
-                <TabsTrigger value="add_handle">Add by Handle/Username</TabsTrigger>
-                <TabsTrigger value="manual_import">Manual Import</TabsTrigger>
-                <TabsTrigger value="oauth" disabled>
-                    Connect with Platform (OAuth)
-                </TabsTrigger>
-                </TabsList>
-                <TabsContent value="add_handle">
+            <div ref={handleFormRef}>
                 <Card>
                     <CardHeader>
                     <CardTitle>
@@ -178,6 +200,7 @@ export default function ConnectionsPage() {
                         {isInstagramForm
                             ? 'Enter the public Instagram username (without @).'
                             : 'Enter a public TikTok username (without @).'}
+                         {' '}Select the platform via the "Add Connection" button.
                     </CardDescription>
                     </CardHeader>
                     <CardContent>
@@ -187,11 +210,11 @@ export default function ConnectionsPage() {
                     />
                     </CardContent>
                 </Card>
-                </TabsContent>
-                <TabsContent value="manual_import">
-                    <ManualImport />
-                </TabsContent>
-            </Tabs>
+            </div>
+
+            <div ref={importFormRef}>
+                <ManualImport />
+            </div>
 
             <Card>
                 <CardHeader>
