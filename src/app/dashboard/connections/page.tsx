@@ -68,9 +68,9 @@ export default function ConnectionsPage() {
         <TabsContent value="add_handle">
           <Card>
             <CardHeader>
-              <CardTitle>Connect via Handle</CardTitle>
+              <CardTitle>Connect TikTok via Handle</CardTitle>
               <CardDescription>
-                Enter a public TikTok handle to start tracking its basic metrics.
+                Enter a public TikTok username (without @).
               </CardDescription>
             </CardHeader>
             <CardContent>

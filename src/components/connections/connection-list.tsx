@@ -1,6 +1,7 @@
 
 'use client';
 
+import React from 'react';
 import { useFirestore, useCollection } from '@/firebase';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import {
@@ -18,7 +19,7 @@ import {
   TableCell,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { MoreHorizontal, Trash2 } from 'lucide-react';
+import { MoreHorizontal, Trash2, Clapperboard, Camera } from 'lucide-react';
 import { Button } from '../ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '../ui/dropdown-menu';
 import { deleteDoc, doc } from 'firebase/firestore';
@@ -32,6 +33,7 @@ interface Connection {
   createdAt: {
     toDate: () => Date;
   };
+  platform?: 'tiktok' | 'instagram';
 }
 
 interface Member {
@@ -39,6 +41,17 @@ interface Member {
     userId: string;
     role: 'admin' | 'consultant' | 'client' | 'viewer';
 }
+
+const PLATFORM_META = {
+    tiktok: { label: "TikTok", icon: <Clapperboard className="h-5 w-5" /> },
+    instagram: { label: "Instagram", icon: <Camera className="h-5 w-5" /> }
+}
+
+function normalizeConnection(connection: Connection) {
+    const platformKey = connection.platform || 'tiktok'; // Default to tiktok for backward compatibility
+    return PLATFORM_META[platformKey] || PLATFORM_META.tiktok;
+}
+
 
 export function ConnectionList() {
   const { user } = useUser();
@@ -89,6 +102,7 @@ export function ConnectionList() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>Platform</TableHead>
               <TableHead>Handle</TableHead>
               <TableHead>Connection Type</TableHead>
               <TableHead>Connected On</TableHead>
@@ -97,8 +111,16 @@ export function ConnectionList() {
           </TableHeader>
           <TableBody>
             {connections.length > 0 ? (
-              connections.map((conn) => (
+              connections.map((conn) => {
+                const platform = normalizeConnection(conn);
+                return (
                 <TableRow key={conn.id}>
+                    <TableCell>
+                        <div className="flex items-center gap-2">
+                            {platform.icon}
+                            <Badge variant="outline">{platform.label}</Badge>
+                        </div>
+                    </TableCell>
                   <TableCell className="font-medium">@{conn.handle}</TableCell>
                   <TableCell>
                     <Badge variant="secondary" className="capitalize">{conn.connectionType.replace('_', ' ')}</Badge>
@@ -127,11 +149,11 @@ export function ConnectionList() {
                     )}
                   </TableCell>
                 </TableRow>
-              ))
+              )})
             ) : (
               <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center">
-                  No connections yet. Add a handle above to get started.
+                <TableCell colSpan={5} className="h-24 text-center">
+                  No TikTok accounts connected yet. Add a TikTok handle or import data to start tracking.
                 </TableCell>
               </TableRow>
             )}

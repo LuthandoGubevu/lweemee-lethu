@@ -53,6 +53,7 @@ export function AddHandleForm({ disabled }: { disabled?: boolean }) {
       await addDoc(connectionsRef, {
         handle: values.handle,
         connectionType: 'handle',
+        platform: 'tiktok',
         createdAt: serverTimestamp(),
       });
 
@@ -80,7 +81,7 @@ export function AddHandleForm({ disabled }: { disabled?: boolean }) {
             <FormItem>
               <FormLabel>TikTok Handle</FormLabel>
               <FormControl>
-                <Input placeholder="e.g., mybrand" {...field} disabled={disabled} />
+                <Input placeholder="e.g., lweemeeofficial" {...field} disabled={disabled} />
               </FormControl>
               <FormMessage />
             </FormItem>
