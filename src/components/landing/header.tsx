@@ -60,11 +60,11 @@ export function Header() {
             <Button variant="ghost" onClick={handleLogout}>Log Out</Button>
           ) : (
             <Button variant="ghost" asChild>
-              <Link href="/login">Log In</Link>
+              <Link href="/login?action=login">Log In</Link>
             </Button>
           )}
           <Button asChild className="bg-accent hover:bg-accent/90 text-accent-foreground">
-            <Link href={user ? "/dashboard" : "/login"}>Get Started</Link>
+            <Link href={user ? "/dashboard" : "/login?action=signup"}>Get Started</Link>
           </Button>
         </div>
         <Sheet open={isMenuOpen} onOpenChange={setIsMenuOpen}>

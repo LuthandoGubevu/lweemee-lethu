@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import {
   getAuth,
   signInWithPopup,
@@ -17,15 +17,15 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useUser, useFirestore } from '@/firebase';
 import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 
-import Step1AccountDetails from '@/components/signup/step1-account-details';
 import Step2BusinessDetails from '@/components/signup/step2-business-details';
 import Step3ServiceSelection from '@/components/signup/step3-service-selection';
-import { LoginForm } from '@/components/login-form';
+import { LoginSignupTabs } from '@/components/login-signup-tabs';
+import { Loader } from 'lucide-react';
+
 
 export default function SignupPage() {
   const [step, setStep] = useState(1);
@@ -175,18 +175,13 @@ export default function SignupPage() {
       description: 'Get started with Lweemee in a few simple steps.',
       step: 1,
       component: (
-        <Tabs defaultValue="signup" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="signup">Sign Up</TabsTrigger>
-                <TabsTrigger value="login">Log In</TabsTrigger>
-            </TabsList>
-            <TabsContent value="signup">
-                <Step1AccountDetails onNext={handleUserCreated} onGoogleSignIn={handleGoogleSignIn} />
-            </TabsContent>
-            <TabsContent value="login">
-                <LoginForm onLogin={handleLogin} onGoogleSignIn={handleGoogleSignIn} />
-            </TabsContent>
-        </Tabs>
+        <Suspense fallback={<div className="flex h-48 items-center justify-center"><Loader className="animate-spin" /></div>}>
+          <LoginSignupTabs
+            onUserCreated={handleUserCreated}
+            onLogin={handleLogin}
+            onGoogleSignIn={handleGoogleSignIn}
+          />
+        </Suspense>
       )
     },
     {
