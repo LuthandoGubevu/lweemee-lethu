@@ -1,7 +1,6 @@
 
 import { NextResponse } from 'next/server';
 import { db, auth as adminAuth } from '@/lib/firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
 import { syncConnection } from '@/lib/sync/sync-service';
 
 export async function POST(request: Request) {
@@ -58,6 +57,7 @@ export async function POST(request: Request) {
         
         // Update connection to show error status
         if (workspaceId && connectionId && db) {
+            const { Timestamp } = await import('firebase-admin/firestore');
             const connectionRef = db.doc(`workspaces/${workspaceId}/connections/${connectionId}`);
             await connectionRef.update({
                 status: 'error',

@@ -1,6 +1,5 @@
 
 import { db } from '@/lib/firebase-admin';
-import { Timestamp } from 'firebase-admin/firestore';
 import { format } from 'date-fns';
 import { providers } from './providers';
 import type { Connection } from '@/app/dashboard/connections/ConnectionDetailsDrawer';
@@ -10,6 +9,8 @@ export async function syncConnection(workspaceId: string, connectionId: string):
         throw new Error('Firebase Admin SDK is not initialized. Check server environment variables.');
     }
     
+    const { Timestamp } = await import('firebase-admin/firestore');
+
     const connectionRef = db.doc(`workspaces/${workspaceId}/connections/${connectionId}`);
     const connectionSnap = await connectionRef.get();
 
