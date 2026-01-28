@@ -1,25 +1,34 @@
 import admin from 'firebase-admin';
 import { getApps } from 'firebase-admin/app';
 
-if (!getApps().length) {
-    const serviceAccount = {
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-        // The private key must be formatted with escaped newlines.
-        privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-    }
+let db: admin.firestore.Firestore | null = null;
+let auth: admin.auth.Auth | null = null;
 
-    try {
-        admin.initializeApp({
-            credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
-        });
-        console.log("Firebase Admin SDK initialized.");
-    } catch (error: any) {
-        console.error("Firebase Admin SDK initialization error:", error.message);
+if (getApps().length === 0) {
+    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_ADMIN_CLIENT_EMAIL && process.env.FIREBASE_ADMIN_PRIVATE_KEY) {
+        const serviceAccount = {
+            projectId: process.env.FIREBASE_PROJECT_ID,
+            clientEmail: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
+            privateKey: process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n'),
+        }
+        try {
+            admin.initializeApp({
+                credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+            });
+            console.log("Firebase Admin SDK initialized.");
+        } catch (error: any) {
+            console.error("Firebase Admin SDK initialization error:", error.message);
+        }
+    } else {
+        if (process.env.NODE_ENV === 'production') {
+            console.warn('Firebase Admin environment variables are not fully set. Admin SDK not initialized.');
+        }
     }
 }
 
-const db = admin.firestore();
-const auth = admin.auth();
+if (admin.apps.length > 0) {
+    db = admin.firestore();
+    auth = admin.auth();
+}
 
 export { db, auth, admin };

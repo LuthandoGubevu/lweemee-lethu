@@ -22,9 +22,16 @@ export async function POST(request: Request) {
     }
 
     try {
+        if (!adminAuth) {
+            throw new Error('Firebase Admin Auth not initialized.');
+        }
         // 1. Verify user token
         const decodedToken = await adminAuth.verifyIdToken(idToken);
         const userId = decodedToken.uid;
+
+        if (!db) {
+            throw new Error('Firestore not initialized.');
+        }
 
         // 2. Check user's role in the workspace
         const memberRef = db.doc(`workspaces/${workspaceId}/members/${userId}`);
@@ -50,7 +57,7 @@ export async function POST(request: Request) {
         console.error(`[API] Sync failed for connection ${connectionId} in workspace ${workspaceId}:`, error);
         
         // Update connection to show error status
-        if (workspaceId && connectionId) {
+        if (workspaceId && connectionId && db) {
             const connectionRef = db.doc(`workspaces/${workspaceId}/connections/${connectionId}`);
             await connectionRef.update({
                 status: 'error',

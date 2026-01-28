@@ -6,6 +6,10 @@ import { providers } from './providers';
 import type { Connection } from '@/app/dashboard/connections/ConnectionDetailsDrawer';
 
 export async function syncConnection(workspaceId: string, connectionId: string): Promise<void> {
+    if (!db) {
+        throw new Error('Firebase Admin SDK is not initialized. Check server environment variables.');
+    }
+    
     const connectionRef = db.doc(`workspaces/${workspaceId}/connections/${connectionId}`);
     const connectionSnap = await connectionRef.get();
 

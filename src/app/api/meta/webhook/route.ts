@@ -55,6 +55,10 @@ export async function POST(request: NextRequest) {
   // This is wrapped in a try/catch to ensure the endpoint always returns a 200 OK
   // even if Firestore is unavailable or fails. Meta will retry if it doesn't get a 200.
   try {
+    if (!db) {
+        console.warn('[Meta Webhook] Firestore is not initialized. Skipping event storage.');
+        return NextResponse.json({ status: 'EVENT_RECEIVED' }, { status: 200 });
+    }
     // Use a unique identifier from the header if available, otherwise generate one.
     const eventId = request.headers.get('x-hub-signature-256') || `event-${Date.now()}`;
     const webhookEventRef = db.collection('metaWebhookEvents').doc(eventId);
