@@ -72,7 +72,8 @@ export function ConnectionDetailsDrawer({ connection, isOpen, onOpenChange }: Co
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Sync failed');
+                const detailedMessage = errorData.details || errorData.error || 'An unknown sync error occurred.';
+                throw new Error(detailedMessage);
             }
 
             toast({ title: "Sync started", description: "Connection is being updated in the background." });
