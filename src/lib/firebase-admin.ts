@@ -5,15 +5,18 @@ let db: admin.firestore.Firestore | null = null;
 let auth: admin.auth.Auth | null = null;
 
 if (getApps().length === 0) {
-    if (process.env.FIREBASE_PROJECT_ID && process.env.FIREBASE_ADMIN_CLIENT_EMAIL && process.env.FIREBASE_ADMIN_PRIVATE_KEY) {
-        const serviceAccount = {
-            project_id: process.env.FIREBASE_PROJECT_ID,
-            client_email: process.env.FIREBASE_ADMIN_CLIENT_EMAIL,
-            private_key: process.env.FIREBASE_ADMIN_PRIVATE_KEY.replace(/\\n/g, '\n'),
-        }
+    const projectId = process.env.FIREBASE_PROJECT_ID;
+    const clientEmail = process.env.FIREBASE_ADMIN_CLIENT_EMAIL;
+    const privateKey = process.env.FIREBASE_ADMIN_PRIVATE_KEY;
+
+    if (projectId && clientEmail && privateKey) {
         try {
             admin.initializeApp({
-                credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+                credential: admin.credential.cert({
+                    projectId,
+                    clientEmail,
+                    privateKey: privateKey.replace(/\\n/g, '\n'),
+                }),
             });
             console.log("Firebase Admin SDK initialized.");
         } catch (error: any) {
@@ -21,14 +24,23 @@ if (getApps().length === 0) {
         }
     } else {
         if (process.env.NODE_ENV === 'production') {
-            console.warn('Firebase Admin environment variables are not fully set. Admin SDK not initialized.');
+            const missing = [
+                !projectId && "FIREBASE_PROJECT_ID",
+                !clientEmail && "FIREBASE_ADMIN_CLIENT_EMAIL",
+                !privateKey && "FIREBASE_ADMIN_PRIVATE_KEY"
+            ].filter(Boolean).join(", ");
+            console.warn(`Firebase Admin environment variables are not fully set. Missing: [${missing}]. Admin SDK not initialized.`);
         }
     }
 }
 
 if (admin.apps.length > 0) {
-    db = admin.firestore();
-    auth = admin.auth();
+    try {
+        db = admin.firestore();
+        auth = admin.auth();
+    } catch (e: any) {
+        console.error("Failed to get Firestore or Auth instance from initialized app.", e);
+    }
 }
 
 export { db, auth, admin };
