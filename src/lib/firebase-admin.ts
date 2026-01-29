@@ -13,9 +13,9 @@ if (getApps().length === 0) {
         try {
             admin.initializeApp({
                 credential: admin.credential.cert({
-                    projectId,
-                    clientEmail,
-                    privateKey: privateKey.replace(/\\n/g, '\n'),
+                    project_id: projectId,
+                    client_email: clientEmail,
+                    private_key: privateKey.replace(/\\n/g, '\n'),
                 }),
             });
             console.log("Firebase Admin SDK initialized.");
