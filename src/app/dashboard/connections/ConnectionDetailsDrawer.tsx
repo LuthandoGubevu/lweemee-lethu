@@ -72,30 +72,33 @@ export function ConnectionDetailsDrawer({ connection, isOpen, onOpenChange }: Co
             });
 
             if (!response.ok) {
-                let errorMessage = `Request failed with status ${response.status}`;
-                try {
-                    // Try to parse error response as JSON, which is the expected format.
+                const contentType = response.headers.get("content-type") || "";
+                let errorMessage;
+
+                if (contentType.includes("application/json")) {
                     const errorData = await response.json();
-                    errorMessage = errorData.details || errorData.error || JSON.stringify(errorData);
-                } catch (e) {
-                    // If JSON parsing fails, the response is likely HTML or plain text.
+                    errorMessage = errorData.details || errorData.error || "An unknown JSON error occurred.";
+                } else {
                     const textResponse = await response.text();
-                    // Don't show the full HTML page in the toast, just a summary.
-                    errorMessage = textResponse.includes('<!DOCTYPE html>') 
-                        ? `The server returned an HTML error page (Status: ${response.status}). Check the server logs for details.`
-                        : textResponse;
+                    errorMessage = `Expected JSON response, but received '${contentType}'. Check server logs. Response: ${textResponse.slice(0, 200)}...`;
                 }
-                 toast({ title: "Sync Failed", description: errorMessage, variant: "destructive" });
+                
+                toast({ 
+                    title: `Sync Failed (Status: ${response.status})`, 
+                    description: errorMessage, 
+                    variant: "destructive",
+                    duration: 9000,
+                });
+
             } else {
                 toast({ title: "Sync started", description: "Connection is being updated in the background." });
                 onOpenChange(false); // Only close drawer on success
             }
 
         } catch (error: any) {
-            toast({ title: "Sync Failed", description: error.message, variant: "destructive" });
+            toast({ title: "Sync Request Failed", description: error.message, variant: "destructive" });
         } finally {
             setIsSyncing(false);
-            // We no longer close the drawer on error to prevent the UI from freezing.
         }
     };
     
