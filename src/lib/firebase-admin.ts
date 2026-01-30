@@ -1,8 +1,8 @@
 import admin from 'firebase-admin';
 import { getApps } from 'firebase-admin/app';
 
-let db: admin.firestore.Firestore | null = null;
-let auth: admin.auth.Auth | null = null;
+let db: admin.firestore.Firestore;
+let auth: admin.auth.Auth;
 
 if (getApps().length === 0) {
     const projectId = process.env.FIREBASE_PROJECT_ID;
@@ -18,29 +18,27 @@ if (getApps().length === 0) {
                     private_key: privateKey.replace(/\\n/g, '\n'),
                 }),
             });
-            console.log("Firebase Admin SDK initialized.");
+            console.log("Firebase Admin SDK initialized successfully.");
         } catch (error: any) {
             console.error("Firebase Admin SDK initialization error:", error.message);
+            // Throwing here will stop the process if initialization fails, which is better for debugging.
+            throw new Error(`Firebase Admin SDK failed to initialize: ${error.message}`);
         }
     } else {
-        if (process.env.NODE_ENV === 'production') {
-            const missing = [
-                !projectId && "FIREBASE_PROJECT_ID",
-                !clientEmail && "FIREBASE_ADMIN_CLIENT_EMAIL",
-                !privateKey && "FIREBASE_ADMIN_PRIVATE_KEY"
-            ].filter(Boolean).join(", ");
-            console.warn(`Firebase Admin environment variables are not fully set. Missing: [${missing}]. Admin SDK not initialized.`);
-        }
+        const missing = [
+            !projectId && "FIREBASE_PROJECT_ID",
+            !clientEmail && "FIREBASE_ADMIN_CLIENT_EMAIL",
+            !privateKey && "FIREBASE_ADMIN_PRIVATE_KEY"
+        ].filter(Boolean).join(", ");
+
+        // This will now be a critical, build-failing error if env vars are missing.
+        throw new Error(`CRITICAL: Firebase Admin SDK failed to initialize. Missing env vars: [${missing}]`);
     }
 }
 
-if (admin.apps.length > 0) {
-    try {
-        db = admin.firestore();
-        auth = admin.auth();
-    } catch (e: any) {
-        console.error("Failed to get Firestore or Auth instance from initialized app.", e);
-    }
-}
+// Initialize db and auth after the app is successfully initialized.
+db = admin.firestore();
+auth = admin.auth();
+
 
 export { db, auth, admin };
