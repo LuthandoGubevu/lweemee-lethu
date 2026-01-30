@@ -1,3 +1,4 @@
+
 'use client';
 import { useState } from 'react';
 import { 
@@ -84,15 +85,17 @@ export function ConnectionDetailsDrawer({ connection, isOpen, onOpenChange }: Co
                         ? `The server returned an HTML error page (Status: ${response.status}). Check the server logs for details.`
                         : textResponse;
                 }
-                throw new Error(errorMessage);
+                 toast({ title: "Sync Failed", description: errorMessage, variant: "destructive" });
+            } else {
+                toast({ title: "Sync started", description: "Connection is being updated in the background." });
+                onOpenChange(false); // Only close drawer on success
             }
 
-            toast({ title: "Sync started", description: "Connection is being updated in the background." });
         } catch (error: any) {
             toast({ title: "Sync Failed", description: error.message, variant: "destructive" });
         } finally {
             setIsSyncing(false);
-            onOpenChange(false); // Close drawer after action
+            // We no longer close the drawer on error to prevent the UI from freezing.
         }
     };
     
