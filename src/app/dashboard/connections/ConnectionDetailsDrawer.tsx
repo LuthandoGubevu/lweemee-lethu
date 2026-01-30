@@ -50,7 +50,7 @@ export function ConnectionDetailsDrawer({ connection, isOpen, onOpenChange }: Co
     const platformMeta = PLATFORM_META[connection.platform || 'tiktok'];
 
     const handleSyncNow = async () => {
-        if (!user || !currentWorkspaceId) {
+        if (!connection || !user || !currentWorkspaceId) {
             toast({ title: "Error", description: "Not logged in or no workspace selected.", variant: "destructive" });
             return;
         }
@@ -71,14 +71,25 @@ export function ConnectionDetailsDrawer({ connection, isOpen, onOpenChange }: Co
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                const detailedMessage = errorData.details || errorData.error || 'An unknown sync error occurred.';
-                throw new Error(detailedMessage);
+                let errorMessage = `Request failed with status ${response.status}`;
+                try {
+                    // Try to parse error response as JSON, which is the expected format.
+                    const errorData = await response.json();
+                    errorMessage = errorData.details || errorData.error || JSON.stringify(errorData);
+                } catch (e) {
+                    // If JSON parsing fails, the response is likely HTML or plain text.
+                    const textResponse = await response.text();
+                    // Don't show the full HTML page in the toast, just a summary.
+                    errorMessage = textResponse.includes('<!DOCTYPE html>') 
+                        ? `The server returned an HTML error page (Status: ${response.status}). Check the server logs for details.`
+                        : textResponse;
+                }
+                throw new Error(errorMessage);
             }
 
             toast({ title: "Sync started", description: "Connection is being updated in the background." });
         } catch (error: any) {
-            toast({ title: "Sync failed", description: error.message, variant: "destructive" });
+            toast({ title: "Sync Failed", description: error.message, variant: "destructive" });
         } finally {
             setIsSyncing(false);
             onOpenChange(false); // Close drawer after action
