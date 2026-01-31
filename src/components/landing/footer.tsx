@@ -1,3 +1,5 @@
+'use client'; // To allow using new Date() without hydration errors
+
 import Link from 'next/link';
 import { BotMessageSquare } from 'lucide-react';
 
@@ -6,6 +8,7 @@ const navLinks = [
     { href: '#features', label: 'Features' },
     { href: '#pricing', label: 'Pricing' },
     { href: '#faq', label: 'FAQ' },
+    { href: '/terms', label: 'Terms of Use' },
 ];
 
 export function Footer() {
