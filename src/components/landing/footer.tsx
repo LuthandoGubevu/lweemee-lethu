@@ -1,3 +1,4 @@
+
 'use client'; // To allow using new Date() without hydration errors
 
 import Link from 'next/link';
@@ -9,6 +10,7 @@ const navLinks = [
     { href: '#pricing', label: 'Pricing' },
     { href: '#faq', label: 'FAQ' },
     { href: '/terms', label: 'Terms of Use' },
+    { href: '/privacy', label: 'Privacy Policy' },
 ];
 
 export function Footer() {
